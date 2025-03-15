@@ -588,18 +588,52 @@ async function showHistorial() {
         // Clear previous entries
         historialList.innerHTML = '';
         
-        // Add new entries
+        // Add header row
+        const headerItem = document.createElement('div');
+        headerItem.className = 'history-item';
+        headerItem.style.fontWeight = 'bold';
+        headerItem.style.borderBottom = '2px solid #ddd';
+        
+        if (sheetName === 'Cargas') {
+            headerItem.innerHTML = `
+                <span>Fecha</span>
+                <span>Estación</span>
+                <span>Litros</span>
+                <span>Usuario</span>
+                <span></span>
+            `;
+        } else {
+            headerItem.innerHTML = `
+                <span>Fecha</span>
+                <span>Obra</span>
+                <span>Máquina</span>
+                <span>Litros</span>
+                <span>Operario</span>
+            `;
+        }
+        historialList.appendChild(headerItem);
+        
+        // Add entries
         data.history.forEach(entry => {
             const item = document.createElement('div');
             item.className = 'history-item';
             
-            // Use the date string directly from the sheet since it's already in the correct format
-            const dateStr = entry[0];
-            
             if (sheetName === 'Cargas') {
-                item.textContent = `${dateStr} - ${entry[2]} - ${entry[3]} litros`;
+                item.innerHTML = `
+                    <span>${entry[0]}</span>
+                    <span>${entry[2]}</span>
+                    <span>${entry[3]} L</span>
+                    <span>${entry[4]}</span>
+                    <span></span>
+                `;
             } else {
-                item.textContent = `${dateStr} - ${entry[2]} - ${entry[3]} - ${entry[5]} litros`;
+                item.innerHTML = `
+                    <span>${entry[0]}</span>
+                    <span>${entry[2]}</span>
+                    <span>${entry[3]}</span>
+                    <span>${entry[5]} L</span>
+                    <span>${entry[4]}</span>
+                `;
             }
             
             historialList.appendChild(item);

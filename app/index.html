@@ -19,7 +19,7 @@
             </div>
             <div class="form-group">
                 <label for="user-password">Contraseña:</label>
-                <input type="text" id="user-password" class="form-control" required>
+                <input type="password" id="user-password" class="form-control" required autocomplete="new-password" spellcheck="false">
             </div>
             <button onclick="startApp()" class="btn btn-primary">Ingresar</button>
         </div>
@@ -119,8 +119,10 @@
                 <h3 id="historial-title">Historial</h3>
                 <button class="modal-close" onclick="closeHistorial()">&times;</button>
             </div>
-            <div id="historial-list" class="history-list">
-                <!-- History items will be added here dynamically -->
+            <div class="history-container">
+                <div id="historial-list" class="history-list">
+                    <!-- History items will be added here dynamically -->
+                </div>
             </div>
         </div>
     </div>
