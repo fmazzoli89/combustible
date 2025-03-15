@@ -161,6 +161,105 @@ async function authenticateUser(username, password) {
     }
 }
 
+// Check if user is logged in
+function checkLoginStatus() {
+    try {
+        const loginData = JSON.parse(localStorage.getItem('loginData'));
+        if (loginData && loginData.username && loginData.expiresAt) {
+            // Check if login hasn't expired
+            if (new Date().getTime() < loginData.expiresAt) {
+                currentUser = loginData.username;
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('main-screen').style.display = 'block';
+                document.getElementById('user-display').textContent = currentUser;
+                setupLogoutHandler();
+                loadLists();
+                return true;
+            }
+        }
+        // Clear expired or invalid login data
+        localStorage.removeItem('loginData');
+    } catch (error) {
+        console.error('Error checking login status:', error);
+        localStorage.removeItem('loginData');
+    }
+    return false;
+}
+
+// Setup logout handler
+function setupLogoutHandler() {
+    const userDisplay = document.getElementById('user-display');
+    
+    // Add cursor pointer style
+    userDisplay.style.cursor = 'pointer';
+    
+    userDisplay.onclick = (event) => {
+        // Create logout button if it doesn't exist
+        let logoutBtn = document.getElementById('logout-btn');
+        if (!logoutBtn) {
+            logoutBtn = document.createElement('button');
+            logoutBtn.id = 'logout-btn';
+            logoutBtn.textContent = 'Salir';
+            logoutBtn.style.cssText = `
+                position: absolute;
+                top: 100%;
+                left: 0;
+                background: white;
+                color: red;
+                border: 1px solid #ddd;
+                padding: 8px 16px;
+                border-radius: 4px;
+                cursor: pointer;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                z-index: 1000;
+            `;
+            
+            logoutBtn.onclick = (e) => {
+                e.stopPropagation();
+                logout();
+            };
+            
+            // Position the container relative for absolute positioning of logout button
+            userDisplay.style.position = 'relative';
+            userDisplay.appendChild(logoutBtn);
+            
+            // Close logout button when clicking outside
+            const closeLogout = (e) => {
+                if (!userDisplay.contains(e.target)) {
+                    logoutBtn.remove();
+                    document.removeEventListener('click', closeLogout);
+                }
+            };
+            
+            // Add delay to avoid immediate trigger of the click event
+            setTimeout(() => {
+                document.addEventListener('click', closeLogout);
+            }, 0);
+        } else {
+            logoutBtn.remove();
+        }
+    };
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem('loginData');
+    currentUser = '';
+    document.getElementById('auth-screen').style.display = 'block';
+    document.getElementById('main-screen').style.display = 'none';
+    document.getElementById('user-display').textContent = '';
+    
+    // Reset forms
+    document.getElementById('carga-form').reset();
+    document.getElementById('descarga-form').reset();
+    
+    // Clear password field
+    const passwordInput = document.getElementById('user-password');
+    if (passwordInput) {
+        passwordInput.value = '';
+    }
+}
+
 // Start the application
 async function startApp() {
     try {
@@ -185,11 +284,21 @@ async function startApp() {
             throw new Error('Por favor ingrese la contraseña');
         }
         
+        // Store login data with 90-day expiration
+        const expiresAt = new Date().getTime() + (90 * 24 * 60 * 60 * 1000); // 90 days in milliseconds
+        localStorage.setItem('loginData', JSON.stringify({
+            username,
+            expiresAt
+        }));
+        
         // Store username and show main content
         currentUser = username;
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('main-screen').style.display = 'block';
         document.getElementById('user-display').textContent = username;
+        
+        // Setup logout handler
+        setupLogoutHandler();
         
         // Load initial data
         await loadLists();
@@ -526,7 +635,10 @@ document.addEventListener('click', (event) => {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
-    // Load users list
-    loadUsersList();
+    // Check if user is already logged in
+    if (!checkLoginStatus()) {
+        // If not logged in, load users list
+        loadUsersList();
+    }
     setupValidation();
 }); 
