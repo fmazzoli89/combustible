@@ -114,13 +114,21 @@ button:hover {
     font-size: 1.2em;
     font-weight: bold;
     color: #333;
+    flex: 1;
+}
+
+#historial-btn {
+    width: auto;
+    min-width: 100px;
+    padding: 6px 12px;
+    font-size: 0.9em;
+    margin-left: auto;
 }
 
 .btn-secondary {
     background-color: #6c757d;
     color: white;
     border: none;
-    padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
 }
