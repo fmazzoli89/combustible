@@ -357,7 +357,7 @@ async function showHistorial() {
         const currentTab = document.querySelector('.tab-btn.active').textContent;
         const sheetName = currentTab === 'CARGA' ? 'Cargas' : 'Descargas';
         
-        const response = await fetch(`${BASE_API_ENDPOINT}/history`, {
+        const response = await fetch(BASE_API_ENDPOINT, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
