@@ -198,14 +198,13 @@ async function handleCarga(event) {
     };
     
     try {
-        // Format the date without timezone adjustment since input is already in local time
-        const date = new Date(data.fecha);
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
+        // Parse the date parts from the input value (format: YYYY-MM-DDThh:mm)
+        const [datePart, timePart] = data.fecha.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hours, minutes] = timePart.split(':').map(Number);
+        
+        // Create formatted date string
+        const formattedDate = `${day}/${month}/${year}, ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         
         const values = [
             formattedDate,
@@ -247,14 +246,13 @@ async function handleDescarga(event) {
     };
     
     try {
-        // Format the date without timezone adjustment since input is already in local time
-        const date = new Date(data.fecha);
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
+        // Parse the date parts from the input value (format: YYYY-MM-DDThh:mm)
+        const [datePart, timePart] = data.fecha.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hours, minutes] = timePart.split(':').map(Number);
+        
+        // Create formatted date string
+        const formattedDate = `${day}/${month}/${year}, ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         
         const values = [
             formattedDate,
