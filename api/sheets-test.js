@@ -1,6 +1,4 @@
-// Serverless function to test Google Sheets access
-const { GoogleSpreadsheet } = require('google-spreadsheet');
-
+// Simplified test endpoint that doesn't use Google Sheets API
 module.exports = async (req, res) => {
   console.log('Test API request received:', req.method);
   
@@ -20,49 +18,13 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Configuration
-    const SHEET_ID = process.env.SHEET_ID || '1hUZfOdDwG44M5k2-dI0NXpH8248LAcwlBde9emw2GP8';
-    const CLIENT_EMAIL = process.env.CLIENT_EMAIL;
-    const PRIVATE_KEY = process.env.PRIVATE_KEY;
-    
-    if (!CLIENT_EMAIL || !PRIVATE_KEY) {
-      console.error('Missing credentials');
-      return res.status(500).json({ error: 'Server configuration error', message: 'Missing credentials' });
-    }
-    
-    console.log('Using configuration:', { SHEET_ID, CLIENT_EMAIL });
-    
-    // Initialize the sheet
-    const doc = new GoogleSpreadsheet(SHEET_ID);
-    
-    // Authenticate with the Google Sheets API
-    await doc.useServiceAccountAuth({
-      client_email: CLIENT_EMAIL,
-      private_key: PRIVATE_KEY.replace(/\\n/g, '\n'), // Fix for escaped newlines in environment variables
-    });
-    
-    // Load document properties and sheets
-    await doc.loadInfo();
-    
-    // Get basic information about the document
-    const info = {
-      title: doc.title,
-      sheetCount: doc.sheetCount,
-      sheets: doc.sheetsByIndex.map(sheet => ({
-        title: sheet.title,
-        index: sheet.index,
-        rowCount: sheet.rowCount,
-        columnCount: sheet.columnCount
-      }))
-    };
-    
-    console.log('Document info:', info);
-    
-    // Return success with document info
+    // Just return a simple success response
     return res.status(200).json({ 
       success: true, 
-      message: 'Successfully connected to Google Sheets',
-      info
+      message: 'API endpoint is working',
+      timestamp: new Date().toISOString(),
+      requestMethod: req.method,
+      requestBody: req.body || {}
     });
   } catch (error) {
     console.error('Error:', error);
