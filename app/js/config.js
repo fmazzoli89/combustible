@@ -22,7 +22,7 @@ const ENDPOINTS = {
 // API endpoint for the serverless function - dynamically set based on environment
 const API_ENDPOINT = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? '/api/sheets'  // Local development
-    : 'https://combustible-tramec.vercel.app/api/sheets';  // Production
+    : 'https://combustible-tramec.vercel.app/api/sheets/';  // Production - note the trailing slash
 
 // Get OAuth2 token
 async function getAccessToken() {
@@ -72,7 +72,8 @@ async function appendToSheet(values) {
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({ values })
         });
@@ -85,7 +86,9 @@ async function appendToSheet(values) {
             throw new Error(errorText || 'Failed to append data to sheet');
         }
 
-        return response.json();
+        const result = await response.json();
+        console.log('API Response:', result); // Debug log
+        return result;
     } catch (error) {
         console.error('Error appending to sheet:', error);
         throw error;
