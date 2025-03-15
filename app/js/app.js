@@ -87,16 +87,14 @@ function showTab(tabName) {
     // Update tab buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
-        if (btn.textContent.toLowerCase().includes(tabName)) {
-            btn.classList.add('active');
-        }
     });
+    document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
     
     // Update tab content
     document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
+        content.style.display = 'none';
     });
-    document.getElementById(tabName).classList.add('active');
+    document.getElementById(tabName).style.display = 'block';
     
     // Reload lists when switching to descarga tab
     if (tabName === 'descarga') {
