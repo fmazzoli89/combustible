@@ -213,23 +213,6 @@ function showCustomAlert(message, onClose) {
     messageElement.style.marginBottom = '20px';
     alertContainer.appendChild(messageElement);
 
-    // Add close button
-    const closeButton = document.createElement('button');
-    closeButton.textContent = 'Cerrar';
-    closeButton.style.cssText = `
-        padding: 8px 16px;
-        background: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    `;
-    closeButton.onclick = () => {
-        document.body.removeChild(alertContainer);
-        if (onClose) onClose();
-    };
-    alertContainer.appendChild(closeButton);
-
     // Add overlay
     const overlay = document.createElement('div');
     overlay.style.cssText = `
@@ -241,15 +224,47 @@ function showCustomAlert(message, onClose) {
         background: rgba(0,0,0,0.5);
         z-index: 999;
     `;
+
+    // Function to clean up both elements
+    const cleanup = () => {
+        if (document.body.contains(overlay)) {
+            document.body.removeChild(overlay);
+        }
+        if (document.body.contains(alertContainer)) {
+            document.body.removeChild(alertContainer);
+        }
+        if (onClose) onClose();
+    };
+
+    // Add close button
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Cerrar';
+    closeButton.style.cssText = `
+        padding: 8px 16px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    `;
+    closeButton.onclick = cleanup;
+    alertContainer.appendChild(closeButton);
+
+    // Add elements to DOM
     document.body.appendChild(overlay);
     document.body.appendChild(alertContainer);
 
     // Remove both overlay and alert when clicking outside
-    overlay.onclick = () => {
-        document.body.removeChild(overlay);
-        document.body.removeChild(alertContainer);
-        if (onClose) onClose();
+    overlay.onclick = cleanup;
+
+    // Add keyboard support for closing
+    const handleEscape = (event) => {
+        if (event.key === 'Escape') {
+            cleanup();
+            document.removeEventListener('keydown', handleEscape);
+        }
     };
+    document.addEventListener('keydown', handleEscape);
 }
 
 // Input validation
