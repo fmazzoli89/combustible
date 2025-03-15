@@ -65,21 +65,87 @@ async function loadLists() {
     }
 }
 
+// Load users list for authentication
+async function loadUsersList() {
+    try {
+        const response = await fetch(BASE_API_ENDPOINT);
+        if (!response.ok) {
+            throw new Error('Failed to fetch users list');
+        }
+        const data = await response.json();
+        
+        // Populate users dropdown
+        const usersSelect = document.getElementById('user-name');
+        usersSelect.innerHTML = '<option value="">Seleccione un usuario</option>';
+        if (data.users && Array.isArray(data.users)) {
+            data.users.forEach(username => {
+                if (username) {
+                    const option = document.createElement('option');
+                    option.value = username;
+                    option.textContent = username;
+                    usersSelect.appendChild(option);
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error loading users:', error);
+        alert('Error al cargar la lista de usuarios');
+    }
+}
+
+// Authenticate user
+async function authenticateUser(username, password) {
+    try {
+        const response = await fetch(`${BASE_API_ENDPOINT}/auth`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password })
+        });
+
+        if (response.ok) {
+            return true;
+        } else {
+            const data = await response.json();
+            throw new Error(data.error || 'Authentication failed');
+        }
+    } catch (error) {
+        console.error('Authentication error:', error);
+        throw error;
+    }
+}
+
 // Start the application after user enters their name
-function startApp() {
-    const userNameInput = document.getElementById('user-name');
-    const userName = userNameInput.value.trim();
+async function startApp() {
+    const userNameSelect = document.getElementById('user-name');
+    const passwordInput = document.getElementById('user-password');
+    const username = userNameSelect.value.trim();
+    const password = passwordInput.value.trim();
     
-    if (!userName) {
-        alert('Por favor ingrese su nombre/identificador');
+    if (!username) {
+        alert('Por favor seleccione un usuario');
+        return;
+    }
+
+    if (!password) {
+        alert('Por favor ingrese su contraseña');
         return;
     }
     
-    currentUser = userName;
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('main-screen').style.display = 'block';
-    initializeDateTimeFields();
-    loadLists(); // Load all lists when app starts
+    try {
+        const isAuthenticated = await authenticateUser(username, password);
+        if (isAuthenticated) {
+            currentUser = username;
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-screen').style.display = 'block';
+            initializeDateTimeFields();
+            loadLists();
+        }
+    } catch (error) {
+        alert('Error de autenticación: ' + error.message);
+        passwordInput.value = ''; // Clear password on error
+    }
 }
 
 // Show selected tab
@@ -286,6 +352,9 @@ function setupValidation() {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
+    // Load users list
+    loadUsersList();
+    
     // Initialize date/time fields if user is already authenticated
     if (document.getElementById('main-screen').style.display !== 'none') {
         initializeDateTimeFields();

@@ -8,12 +8,20 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <div id="auth-screen" class="screen">
-        <h1>Control de Combustible</h1>
-        <div class="form-group">
-            <label for="user-name">Nombre/Identificador:</label>
-            <input type="text" id="user-name" required>
-            <button onclick="startApp()">Comenzar</button>
+    <div id="auth-screen" class="container">
+        <h1>Bienvenido</h1>
+        <div class="auth-form">
+            <div class="form-group">
+                <label for="user-name">Usuario:</label>
+                <select id="user-name" class="form-control" required>
+                    <option value="">Seleccione un usuario</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="user-password">Contraseña:</label>
+                <input type="password" id="user-password" class="form-control" required>
+            </div>
+            <button onclick="startApp()" class="btn btn-primary">Ingresar</button>
         </div>
     </div>
 

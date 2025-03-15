@@ -64,6 +64,39 @@ async function getMaquinasList() {
     }
 }
 
+// Function to get users list from sheet
+async function getUsersList() {
+    try {
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.SHEET_ID,
+            range: 'Usuarios!A2:B',
+            majorDimension: 'ROWS'
+        });
+
+        // Extract users and passwords
+        const users = response.data.values || [];
+        return users.map(row => ({
+            username: row[0] || '',
+            password: row[1] || ''
+        }));
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+    }
+}
+
+// Function to verify user credentials
+async function verifyCredentials(username, password) {
+    try {
+        const users = await getUsersList();
+        const user = users.find(u => u.username === username);
+        return user && user.password === password;
+    } catch (error) {
+        console.error('Error verifying credentials:', error);
+        throw error;
+    }
+}
+
 // Function to ensure sheet exists
 async function ensureSheetExists(spreadsheetId, sheetName) {
     try {
@@ -116,16 +149,21 @@ module.exports = async (req, res) => {
     // Handle GET request for lists
     if (req.method === 'GET') {
         try {
-            const [obras, operarios, maquinas] = await Promise.all([
+            const [obras, operarios, maquinas, users] = await Promise.all([
                 getObrasList(),
                 getOperariosList(),
-                getMaquinasList()
+                getMaquinasList(),
+                getUsersList()
             ]);
+            
+            // Only send usernames, not passwords
+            const usernames = users.map(user => user.username);
             
             res.status(200).json({
                 obras,
                 operarios,
-                maquinas
+                maquinas,
+                users: usernames
             });
         } catch (error) {
             console.error('Error getting lists:', error);
@@ -135,6 +173,34 @@ module.exports = async (req, res) => {
             });
         }
         return;
+    }
+
+    // Handle POST request for authentication
+    if (req.method === 'POST' && req.url === '/auth') {
+        try {
+            const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+            const { username, password } = body;
+
+            if (!username || !password) {
+                res.status(400).json({ error: 'Username and password are required' });
+                return;
+            }
+
+            const isValid = await verifyCredentials(username, password);
+            if (isValid) {
+                res.status(200).json({ success: true });
+            } else {
+                res.status(401).json({ error: 'Invalid credentials' });
+            }
+            return;
+        } catch (error) {
+            console.error('Auth error:', error);
+            res.status(500).json({
+                error: 'Authentication failed',
+                details: error.message
+            });
+            return;
+        }
     }
 
     // Handle POST request for appending data
