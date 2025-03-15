@@ -28,6 +28,42 @@ async function getObrasList() {
     }
 }
 
+// Function to get operarios list from sheet
+async function getOperariosList() {
+    try {
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.SHEET_ID,
+            range: 'Operarios!A2:A',
+            majorDimension: 'COLUMNS'
+        });
+
+        // Extract the first (and only) column
+        const operarios = response.data.values ? response.data.values[0] : [];
+        return operarios;
+    } catch (error) {
+        console.error('Error fetching operarios:', error);
+        throw error;
+    }
+}
+
+// Function to get maquinas list from sheet
+async function getMaquinasList() {
+    try {
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.SHEET_ID,
+            range: 'Maquinas!A2:A',
+            majorDimension: 'COLUMNS'
+        });
+
+        // Extract the first (and only) column
+        const maquinas = response.data.values ? response.data.values[0] : [];
+        return maquinas;
+    } catch (error) {
+        console.error('Error fetching maquinas:', error);
+        throw error;
+    }
+}
+
 // Function to ensure sheet exists
 async function ensureSheetExists(spreadsheetId, sheetName) {
     try {
@@ -77,15 +113,24 @@ module.exports = async (req, res) => {
         return;
     }
 
-    // Handle GET request for obras list
+    // Handle GET request for lists
     if (req.method === 'GET') {
         try {
-            const obras = await getObrasList();
-            res.status(200).json({ obras });
+            const [obras, operarios, maquinas] = await Promise.all([
+                getObrasList(),
+                getOperariosList(),
+                getMaquinasList()
+            ]);
+            
+            res.status(200).json({
+                obras,
+                operarios,
+                maquinas
+            });
         } catch (error) {
-            console.error('Error getting obras list:', error);
+            console.error('Error getting lists:', error);
             res.status(500).json({
-                error: 'Failed to get obras list',
+                error: 'Failed to get lists',
                 details: error.message
             });
         }

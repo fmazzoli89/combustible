@@ -9,25 +9,21 @@ function initializeDateTimeFields() {
     document.getElementById('descarga-fecha').value = dateString;
 }
 
-// Fetch and populate obras list
-async function loadObrasList() {
+// Fetch and populate all lists
+async function loadLists() {
     try {
         const response = await fetch(BASE_API_ENDPOINT);
         if (!response.ok) {
-            throw new Error('Failed to fetch obras list');
+            throw new Error('Failed to fetch lists');
         }
         const data = await response.json();
         
-        // Get the select element
+        // Populate obras list
         const obrasSelect = document.getElementById('descarga-obra');
-        
-        // Clear existing options
         obrasSelect.innerHTML = '<option value="">Seleccione una obra</option>';
-        
-        // Add new options
         if (data.obras && Array.isArray(data.obras)) {
             data.obras.forEach(obra => {
-                if (obra) { // Only add non-empty obras
+                if (obra) {
                     const option = document.createElement('option');
                     option.value = obra;
                     option.textContent = obra;
@@ -35,9 +31,37 @@ async function loadObrasList() {
                 }
             });
         }
+
+        // Populate operarios list
+        const operariosSelect = document.getElementById('descarga-operario');
+        operariosSelect.innerHTML = '<option value="">Seleccione un operario</option>';
+        if (data.operarios && Array.isArray(data.operarios)) {
+            data.operarios.forEach(operario => {
+                if (operario) {
+                    const option = document.createElement('option');
+                    option.value = operario;
+                    option.textContent = operario;
+                    operariosSelect.appendChild(option);
+                }
+            });
+        }
+
+        // Populate maquinas list
+        const maquinasSelect = document.getElementById('descarga-maquina');
+        maquinasSelect.innerHTML = '<option value="">Seleccione una máquina</option>';
+        if (data.maquinas && Array.isArray(data.maquinas)) {
+            data.maquinas.forEach(maquina => {
+                if (maquina) {
+                    const option = document.createElement('option');
+                    option.value = maquina;
+                    option.textContent = maquina;
+                    maquinasSelect.appendChild(option);
+                }
+            });
+        }
     } catch (error) {
-        console.error('Error loading obras:', error);
-        alert('Error al cargar la lista de obras');
+        console.error('Error loading lists:', error);
+        alert('Error al cargar las listas');
     }
 }
 
@@ -55,7 +79,7 @@ function startApp() {
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('main-screen').style.display = 'block';
     initializeDateTimeFields();
-    loadObrasList(); // Load obras when app starts
+    loadLists(); // Load all lists when app starts
 }
 
 // Show selected tab
@@ -74,9 +98,9 @@ function showTab(tabName) {
     });
     document.getElementById(tabName).classList.add('active');
     
-    // Reload obras list when switching to descarga tab
+    // Reload lists when switching to descarga tab
     if (tabName === 'descarga') {
-        loadObrasList();
+        loadLists();
     }
 }
 
@@ -105,6 +129,8 @@ async function handleCarga(event) {
         showCustomAlert('Carga Exitosa', () => {
             document.getElementById('carga-form').reset();
             initializeDateTimeFields();
+            // Clear number fields explicitly
+            document.getElementById('carga-litros').value = '';
         });
     } catch (error) {
         alert('Error al registrar la carga: ' + error.message);
@@ -151,6 +177,12 @@ async function handleDescarga(event) {
             document.getElementById('descarga-form').reset();
             document.getElementById('descarga-obra').value = selectedObra; // Restore the obra value
             initializeDateTimeFields();
+            // Clear number fields explicitly
+            document.getElementById('descarga-litros').value = '';
+            document.getElementById('descarga-horometro').value = '';
+            document.getElementById('descarga-aceite-motor').value = '';
+            document.getElementById('descarga-aceite-hidraulico').value = '';
+            document.getElementById('descarga-fluidina').value = '';
         });
     } catch (error) {
         alert('Error al registrar la descarga: ' + error.message);
@@ -225,6 +257,9 @@ function setupValidation() {
     const litrosInputs = document.querySelectorAll('input[type="number"]');
     
     litrosInputs.forEach(input => {
+        // Clear default value
+        input.value = '';
+        
         input.addEventListener('input', () => {
             const value = parseFloat(input.value);
             if (input.id === 'carga-litros' && value > 700) {
