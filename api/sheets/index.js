@@ -176,36 +176,24 @@ module.exports = async (req, res) => {
     }
 
     // Handle POST request for authentication
-    if (req.method === 'POST' && req.url === '/auth') {
+    if (req.method === 'POST') {
         try {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-            const { username, password } = body;
-
-            if (!username || !password) {
-                res.status(400).json({ error: 'Username and password are required' });
+            
+            // Check if this is an authentication request
+            if (body.username && body.password) {
+                const isValid = await verifyCredentials(body.username, body.password);
+                if (isValid) {
+                    res.status(200).json({ success: true });
+                } else {
+                    res.status(401).json({ error: 'Invalid credentials' });
+                }
                 return;
             }
 
-            const isValid = await verifyCredentials(username, password);
-            if (isValid) {
-                res.status(200).json({ success: true });
-            } else {
-                res.status(401).json({ error: 'Invalid credentials' });
-            }
-            return;
-        } catch (error) {
-            console.error('Auth error:', error);
-            res.status(500).json({
-                error: 'Authentication failed',
-                details: error.message
-            });
-            return;
-        }
-    }
+            // If not authentication, handle as data append request
+            const { values } = body;
 
-    // Handle POST request for appending data
-    if (req.method === 'POST') {
-        try {
             // Log environment variables (without sensitive data)
             console.log('Environment check:', {
                 hasSheetId: !!process.env.SHEET_ID,
@@ -213,10 +201,6 @@ module.exports = async (req, res) => {
                 hasPrivateKey: !!process.env.PRIVATE_KEY,
                 sheetIdLength: process.env.SHEET_ID?.length
             });
-
-            // Parse request body
-            const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-            const { values } = body;
 
             console.log('Received values:', values);
 

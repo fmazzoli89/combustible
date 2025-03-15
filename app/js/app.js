@@ -96,7 +96,7 @@ async function loadUsersList() {
 // Authenticate user
 async function authenticateUser(username, password) {
     try {
-        const response = await fetch(`${BASE_API_ENDPOINT}/auth`, {
+        const response = await fetch(BASE_API_ENDPOINT, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
