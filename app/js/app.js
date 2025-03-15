@@ -9,6 +9,38 @@ function initializeDateTimeFields() {
     document.getElementById('descarga-fecha').value = dateString;
 }
 
+// Fetch and populate obras list
+async function loadObrasList() {
+    try {
+        const response = await fetch(BASE_API_ENDPOINT);
+        if (!response.ok) {
+            throw new Error('Failed to fetch obras list');
+        }
+        const data = await response.json();
+        
+        // Get the select element
+        const obrasSelect = document.getElementById('descarga-obra');
+        
+        // Clear existing options
+        obrasSelect.innerHTML = '<option value="">Seleccione una obra</option>';
+        
+        // Add new options
+        if (data.obras && Array.isArray(data.obras)) {
+            data.obras.forEach(obra => {
+                if (obra) { // Only add non-empty obras
+                    const option = document.createElement('option');
+                    option.value = obra;
+                    option.textContent = obra;
+                    obrasSelect.appendChild(option);
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error loading obras:', error);
+        alert('Error al cargar la lista de obras');
+    }
+}
+
 // Start the application after user enters their name
 function startApp() {
     const userNameInput = document.getElementById('user-name');
@@ -23,6 +55,7 @@ function startApp() {
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('main-screen').style.display = 'block';
     initializeDateTimeFields();
+    loadObrasList(); // Load obras when app starts
 }
 
 // Show selected tab
@@ -40,6 +73,11 @@ function showTab(tabName) {
         content.classList.remove('active');
     });
     document.getElementById(tabName).classList.add('active');
+    
+    // Reload obras list when switching to descarga tab
+    if (tabName === 'descarga') {
+        loadObrasList();
+    }
 }
 
 // Handle carga form submission

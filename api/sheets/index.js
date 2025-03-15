@@ -10,6 +10,24 @@ const auth = new google.auth.JWT(
 
 const sheets = google.sheets({ version: 'v4', auth });
 
+// Function to get obras list from sheet
+async function getObrasList() {
+    try {
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.SHEET_ID,
+            range: 'Obras!A2:A',
+            majorDimension: 'COLUMNS'
+        });
+
+        // Extract the first (and only) column
+        const obras = response.data.values ? response.data.values[0] : [];
+        return obras;
+    } catch (error) {
+        console.error('Error fetching obras:', error);
+        throw error;
+    }
+}
+
 // Function to ensure sheet exists
 async function ensureSheetExists(spreadsheetId, sheetName) {
     try {
@@ -47,16 +65,10 @@ async function ensureSheetExists(spreadsheetId, sheetName) {
 }
 
 module.exports = async (req, res) => {
-    console.log('API Request received:', {
-        method: req.method,
-        headers: req.headers,
-        body: req.body
-    });
-
     // Enable CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     // Handle preflight request
@@ -65,125 +77,137 @@ module.exports = async (req, res) => {
         return;
     }
 
-    // Only allow POST
-    if (req.method !== 'POST') {
-        res.status(405).json({ error: 'Method not allowed' });
+    // Handle GET request for obras list
+    if (req.method === 'GET') {
+        try {
+            const obras = await getObrasList();
+            res.status(200).json({ obras });
+        } catch (error) {
+            console.error('Error getting obras list:', error);
+            res.status(500).json({
+                error: 'Failed to get obras list',
+                details: error.message
+            });
+        }
         return;
     }
 
-    try {
-        // Log environment variables (without sensitive data)
-        console.log('Environment check:', {
-            hasSheetId: !!process.env.SHEET_ID,
-            hasClientEmail: !!process.env.CLIENT_EMAIL,
-            hasPrivateKey: !!process.env.PRIVATE_KEY,
-            sheetIdLength: process.env.SHEET_ID?.length
-        });
-
-        // Parse request body
-        const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-        const { values } = body;
-
-        console.log('Received values:', values);
-
-        if (!values || !Array.isArray(values)) {
-            console.log('Invalid data format:', body);
-            res.status(400).json({ error: 'Invalid data format' });
-            return;
-        }
-
-        // First, try to get the sheet to verify access
+    // Handle POST request for appending data
+    if (req.method === 'POST') {
         try {
-            console.log('Verifying sheet access...');
-            const sheetInfo = await sheets.spreadsheets.get({
-                spreadsheetId: process.env.SHEET_ID
+            // Log environment variables (without sensitive data)
+            console.log('Environment check:', {
+                hasSheetId: !!process.env.SHEET_ID,
+                hasClientEmail: !!process.env.CLIENT_EMAIL,
+                hasPrivateKey: !!process.env.PRIVATE_KEY,
+                sheetIdLength: process.env.SHEET_ID?.length
             });
-            console.log('Sheet access verified:', sheetInfo.data.properties.title);
-        } catch (error) {
-            console.error('Error accessing sheet:', {
-                error: error.message,
-                stack: error.stack,
-                response: error.response?.data
-            });
-            res.status(500).json({
-                error: 'Failed to access sheet',
-                details: error.message,
-                response: error.response?.data
-            });
-            return;
-        }
 
-        // Determine which sheet to use
-        const sheetName = values[1] === 'DESCARGA' ? 'Descargas' : 'Cargas';
-        console.log('Selected sheet:', sheetName);
-        
-        // Ensure the sheet exists
-        try {
-            await ensureSheetExists(process.env.SHEET_ID, sheetName);
-            console.log('Sheet exists or was created:', sheetName);
-        } catch (error) {
-            console.error('Error ensuring sheet exists:', {
-                error: error.message,
-                stack: error.stack,
-                response: error.response?.data
-            });
-            res.status(500).json({
-                error: 'Failed to ensure sheet exists',
-                details: error.message,
-                response: error.response?.data
-            });
-            return;
-        }
+            // Parse request body
+            const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+            const { values } = body;
 
-        // Append values to the appropriate sheet
-        try {
-            console.log('Attempting to append values:', {
-                sheetName,
-                values
-            });
+            console.log('Received values:', values);
+
+            if (!values || !Array.isArray(values)) {
+                console.log('Invalid data format:', body);
+                res.status(400).json({ error: 'Invalid data format' });
+                return;
+            }
+
+            // First, try to get the sheet to verify access
+            try {
+                console.log('Verifying sheet access...');
+                const sheetInfo = await sheets.spreadsheets.get({
+                    spreadsheetId: process.env.SHEET_ID
+                });
+                console.log('Sheet access verified:', sheetInfo.data.properties.title);
+            } catch (error) {
+                console.error('Error accessing sheet:', {
+                    error: error.message,
+                    stack: error.stack,
+                    response: error.response?.data
+                });
+                res.status(500).json({
+                    error: 'Failed to access sheet',
+                    details: error.message,
+                    response: error.response?.data
+                });
+                return;
+            }
+
+            // Determine which sheet to use
+            const sheetName = values[1] === 'DESCARGA' ? 'Descargas' : 'Cargas';
+            console.log('Selected sheet:', sheetName);
             
-            const response = await sheets.spreadsheets.values.append({
-                spreadsheetId: process.env.SHEET_ID,
-                range: `${sheetName}!A:K`,
-                valueInputOption: 'USER_ENTERED',
-                insertDataOption: 'INSERT_ROWS',
-                resource: {
-                    values: [values]
-                }
-            });
+            // Ensure the sheet exists
+            try {
+                await ensureSheetExists(process.env.SHEET_ID, sheetName);
+                console.log('Sheet exists or was created:', sheetName);
+            } catch (error) {
+                console.error('Error ensuring sheet exists:', {
+                    error: error.message,
+                    stack: error.stack,
+                    response: error.response?.data
+                });
+                res.status(500).json({
+                    error: 'Failed to ensure sheet exists',
+                    details: error.message,
+                    response: error.response?.data
+                });
+                return;
+            }
 
-            console.log('Successfully appended values:', response.data);
+            // Append values to the appropriate sheet
+            try {
+                console.log('Attempting to append values:', {
+                    sheetName,
+                    values
+                });
+                
+                const response = await sheets.spreadsheets.values.append({
+                    spreadsheetId: process.env.SHEET_ID,
+                    range: `${sheetName}!A:K`,
+                    valueInputOption: 'USER_ENTERED',
+                    insertDataOption: 'INSERT_ROWS',
+                    resource: {
+                        values: [values]
+                    }
+                });
 
-            res.status(200).json({
-                success: true,
-                updatedRange: response.data.updates.updatedRange
-            });
+                console.log('Successfully appended values:', response.data);
+
+                res.status(200).json({
+                    success: true,
+                    updatedRange: response.data.updates.updatedRange
+                });
+            } catch (error) {
+                console.error('Error appending to sheet:', {
+                    error: error.message,
+                    stack: error.stack,
+                    response: error.response?.data,
+                    sheetName,
+                    values
+                });
+                res.status(500).json({
+                    error: 'Failed to append to sheet',
+                    details: error.message,
+                    response: error.response?.data,
+                    sheetName,
+                    values
+                });
+            }
         } catch (error) {
-            console.error('Error appending to sheet:', {
+            console.error('API Error:', {
                 error: error.message,
                 stack: error.stack,
-                response: error.response?.data,
-                sheetName,
-                values
+                response: error.response?.data
             });
             res.status(500).json({
-                error: 'Failed to append to sheet',
+                error: 'Failed to process request',
                 details: error.message,
-                response: error.response?.data,
-                sheetName,
-                values
+                response: error.response?.data
             });
         }
-    } catch (error) {
-        console.error('API Error:', {
-            error: error.message,
-            stack: error.stack,
-            response: error.response?.data
-        });
-        res.status(500).json({
-            error: 'Failed to process request',
-            details: error.message,
-            response: error.response?.data
-        });
     }
 }; 
