@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Combustible</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="carga">CARGA</button>
+            <button class="tab-btn" data-tab="descarga">DESCARGA</button>
+        </div>
+
+        <div class="tab-content" id="carga">
+            <form id="cargaForm">
+                <div class="form-group">
+                    <label for="cargaFecha">Fecha y hora</label>
+                    <input type="datetime-local" id="cargaFecha" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="estacion">Estación</label>
+                    <select id="estacion" required>
+                        <option value="INTERCAR" selected>INTERCAR</option>
+                        <option value="DEFLORES">DEFLORES</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="cargaLitros">Litros</label>
+                    <input type="number" id="cargaLitros" max="700" required>
+                </div>
+
+                <button type="submit" class="btn-primary">CARGAR</button>
+            </form>
+        </div>
+
+        <div class="tab-content hidden" id="descarga">
+            <form id="descargaForm">
+                <div class="form-group">
+                    <label for="descargaFecha">Fecha y hora</label>
+                    <input type="datetime-local" id="descargaFecha" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="obra">Obra</label>
+                    <select id="obra" required>
+                        <option value="OBRA 1">OBRA 1</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="maquina">Máquina</label>
+                    <select id="maquina" required>
+                        <option value="MAQUINA 1">MAQUINA 1</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="operario">Operario</label>
+                    <select id="operario" required>
+                        <option value="OPERARIO 1">OPERARIO 1</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="descargaLitros">Litros</label>
+                    <input type="number" id="descargaLitros" max="400" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="horometro">Horómetro</label>
+                    <input type="number" id="horometro" step="0.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="aceiteMotor">Aceite de motor (litros)</label>
+                    <input type="number" id="aceiteMotor" value="0" step="0.1">
+                </div>
+
+                <div class="form-group">
+                    <label for="aceiteHidraulico">Aceite hidráulico (litros)</label>
+                    <input type="number" id="aceiteHidraulico" value="0" step="0.1">
+                </div>
+
+                <div class="form-group">
+                    <label for="fluidina">Fluidina (litros)</label>
+                    <input type="number" id="fluidina" value="0" step="0.1">
+                </div>
+
+                <button type="submit" class="btn-primary">DESCARGAR</button>
+            </form>
+        </div>
+    </div>
+    <script src="js/app.js"></script>
+</body>
+</html> 
