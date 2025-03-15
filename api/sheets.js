@@ -1,5 +1,5 @@
 // Serverless function to handle Google Sheets API requests
-const fetch = require('node-fetch');
+const { GoogleSpreadsheet } = require('google-spreadsheet');
 
 module.exports = async (req, res) => {
   console.log('API request received:', req.method);
@@ -30,39 +30,46 @@ module.exports = async (req, res) => {
     
     // Configuration
     const SHEET_ID = process.env.SHEET_ID || '1hUZfOdDwG44M5k2-dI0NXpH8248LAcwlBde9emw2GP8';
-    const API_KEY = process.env.API_KEY || 'AIzaSyA9DajDlIlCLytHNPCkrCCfVUx5yQRohxI';
+    const CLIENT_EMAIL = process.env.CLIENT_EMAIL;
+    const PRIVATE_KEY = process.env.PRIVATE_KEY;
     
-    console.log('Using configuration:', { SHEET_ID, API_KEY: API_KEY.substring(0, 5) + '...' });
+    if (!CLIENT_EMAIL || !PRIVATE_KEY) {
+      console.error('Missing credentials');
+      return res.status(500).json({ error: 'Server configuration error', message: 'Missing credentials' });
+    }
     
-    // Build the API endpoint
-    const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${sheetName}!A:Z:append`;
-    const params = new URLSearchParams({
-      valueInputOption: 'USER_ENTERED',
-      key: API_KEY,
-      insertDataOption: 'INSERT_ROWS'
+    console.log('Using configuration:', { SHEET_ID, CLIENT_EMAIL });
+    
+    // Initialize the sheet
+    const doc = new GoogleSpreadsheet(SHEET_ID);
+    
+    // Authenticate with the Google Sheets API
+    await doc.useServiceAccountAuth({
+      client_email: CLIENT_EMAIL,
+      private_key: PRIVATE_KEY.replace(/\\n/g, '\n'), // Fix for escaped newlines in environment variables
     });
-
-    console.log('Making request to:', `${endpoint}?${params}`);
-
-    // Make the request to Google Sheets API
-    const response = await fetch(`${endpoint}?${params}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        range: `${sheetName}!A:Z`,
-        majorDimension: "ROWS",
-        values: [values]
-      })
-    });
-
-    // Get the response
-    const data = await response.json();
-    console.log('Google Sheets API response:', data);
     
-    // Return the response
-    return res.status(response.status).json(data);
+    // Load document properties and sheets
+    await doc.loadInfo();
+    console.log('Loaded document:', doc.title);
+    
+    // Get the sheet
+    const sheet = doc.sheetsByTitle[sheetName];
+    if (!sheet) {
+      console.error('Sheet not found:', sheetName);
+      return res.status(404).json({ error: 'Sheet not found', message: `Sheet "${sheetName}" not found` });
+    }
+    
+    // Add the row
+    const result = await sheet.addRow(values);
+    console.log('Added row:', result._rowNumber);
+    
+    // Return success
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Data added successfully',
+      rowNumber: result._rowNumber
+    });
   } catch (error) {
     console.error('Error:', error);
     return res.status(500).json({ error: 'Internal Server Error', message: error.message });

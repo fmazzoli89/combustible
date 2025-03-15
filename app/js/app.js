@@ -64,6 +64,12 @@ async function appendToSheet(sheetName, values) {
             throw new Error(result.error?.message || `HTTP error! status: ${response.status}`);
         }
         
+        // Check for success in the new API response format
+        if (!result.success) {
+            console.error('API Error:', result);
+            throw new Error(result.message || 'Unknown error occurred');
+        }
+        
         console.log('Success:', result);
         return result;
     } catch (error) {

@@ -19,8 +19,15 @@ async function testSheetsAccess() {
         }
 
         const data = await response.json();
-        console.log('Sheet info:', data);
-        return data;
+        
+        // Check for success in the new API response format
+        if (!data.success) {
+            console.error('API Error:', data);
+            throw new Error(data.message || 'Unknown error occurred');
+        }
+        
+        console.log('Sheet info:', data.info);
+        return data.info;
     } catch (error) {
         console.error('Error accessing sheet:', error);
         throw error;
