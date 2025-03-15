@@ -4,11 +4,10 @@
     "private": true,
     "description": "Aplicación web para gestión de combustible",
     "scripts": {
-        "start": "npx serve app"
+        "dev": "vercel dev",
+        "deploy": "vercel deploy --prod"
     },
     "dependencies": {
-        "node-fetch": "^2.6.7",
-        "body-parser": "^1.20.2",
         "googleapis": "^128.0.0"
     },
     "author": "",

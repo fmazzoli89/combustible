@@ -20,7 +20,7 @@ const ENDPOINTS = {
 };
 
 // API endpoint for the serverless function
-const API_ENDPOINT = '/api/sheets';
+const API_ENDPOINT = 'https://combustible-tramec.vercel.app/api/sheets';
 
 // Get OAuth2 token
 async function getAccessToken() {
@@ -65,18 +65,23 @@ async function getAccessToken() {
 
 // Function to append data to the sheet
 async function appendToSheet(values) {
-    const response = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ values })
-    });
+    try {
+        const response = await fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ values })
+        });
 
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.details || error.error || 'Failed to append data to sheet');
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.details || error.error || 'Failed to append data to sheet');
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error('Error appending to sheet:', error);
+        throw error;
     }
-
-    return response.json();
 } 

@@ -30,9 +30,14 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const { values } = req.body;
-        
+        // Parse request body
+        const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+        const { values } = body;
+
+        console.log('Received values:', values); // Debug log
+
         if (!values || !Array.isArray(values)) {
+            console.log('Invalid data format:', body); // Debug log
             res.status(400).json({ error: 'Invalid data format' });
             return;
         }
@@ -40,12 +45,14 @@ module.exports = async (req, res) => {
         // Append values to the sheet
         const response = await sheets.spreadsheets.values.append({
             spreadsheetId: process.env.SHEET_ID,
-            range: 'Sheet1!A:K', // Adjust range based on your needs
+            range: 'Sheet1!A:K',
             valueInputOption: 'USER_ENTERED',
             resource: {
                 values: [values]
             }
         });
+
+        console.log('Sheets API response:', response.data); // Debug log
 
         res.status(200).json({
             success: true,
@@ -55,7 +62,8 @@ module.exports = async (req, res) => {
         console.error('API Error:', error);
         res.status(500).json({
             error: 'Failed to append data to sheet',
-            details: error.message
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 }; 
