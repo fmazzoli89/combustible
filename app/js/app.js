@@ -102,9 +102,10 @@ async function handleCarga(event) {
         ];
         
         await appendToSheet(values);
-        alert('Carga registrada exitosamente');
-        document.getElementById('carga-form').reset();
-        initializeDateTimeFields();
+        showCustomAlert('Carga Exitosa', () => {
+            document.getElementById('carga-form').reset();
+            initializeDateTimeFields();
+        });
     } catch (error) {
         alert('Error al registrar la carga: ' + error.message);
         console.error('Error:', error);
@@ -145,13 +146,78 @@ async function handleDescarga(event) {
         ];
         
         await appendToSheet(values);
-        alert('Descarga registrada exitosamente');
-        document.getElementById('descarga-form').reset();
-        initializeDateTimeFields();
+        const selectedObra = data.obra; // Store the selected obra before reset
+        showCustomAlert('Descarga Exitosa', () => {
+            document.getElementById('descarga-form').reset();
+            document.getElementById('descarga-obra').value = selectedObra; // Restore the obra value
+            initializeDateTimeFields();
+        });
     } catch (error) {
         alert('Error al registrar la descarga: ' + error.message);
         console.error('Error:', error);
     }
+}
+
+// Custom alert function
+function showCustomAlert(message, onClose) {
+    // Create alert container
+    const alertContainer = document.createElement('div');
+    alertContainer.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        text-align: center;
+        z-index: 1000;
+    `;
+
+    // Add message
+    const messageElement = document.createElement('p');
+    messageElement.textContent = message;
+    messageElement.style.marginBottom = '20px';
+    alertContainer.appendChild(messageElement);
+
+    // Add close button
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Cerrar';
+    closeButton.style.cssText = `
+        padding: 8px 16px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    `;
+    closeButton.onclick = () => {
+        document.body.removeChild(alertContainer);
+        if (onClose) onClose();
+    };
+    alertContainer.appendChild(closeButton);
+
+    // Add overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+    `;
+    document.body.appendChild(overlay);
+    document.body.appendChild(alertContainer);
+
+    // Remove both overlay and alert when clicking outside
+    overlay.onclick = () => {
+        document.body.removeChild(overlay);
+        document.body.removeChild(alertContainer);
+        if (onClose) onClose();
+    };
 }
 
 // Input validation
