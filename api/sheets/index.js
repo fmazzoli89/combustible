@@ -133,6 +133,30 @@ async function ensureSheetExists(spreadsheetId, sheetName) {
     }
 }
 
+// Function to get user history
+async function getUserHistory(username, sheetName) {
+    try {
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.SHEET_ID,
+            range: `${sheetName}!A:K`,
+            majorDimension: 'ROWS'
+        });
+
+        const values = response.data.values || [];
+        
+        // Filter by username and get last 5 entries
+        const userHistory = values
+            .filter(row => row[row.length - 1] === username) // Username is in the last column
+            .reverse() // Most recent first
+            .slice(0, 5); // Get only last 5 entries
+
+        return userHistory;
+    } catch (error) {
+        console.error('Error fetching user history:', error);
+        throw error;
+    }
+}
+
 module.exports = async (req, res) => {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -175,11 +199,18 @@ module.exports = async (req, res) => {
         return;
     }
 
-    // Handle POST request for authentication
+    // Handle POST request for history
     if (req.method === 'POST') {
         try {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
             
+            // Check if this is a history request
+            if (body.username && body.sheetName) {
+                const history = await getUserHistory(body.username, body.sheetName);
+                res.status(200).json({ history });
+                return;
+            }
+
             // Check if this is an authentication request
             if (body.username && body.password) {
                 const isValid = await verifyCredentials(body.username, body.password);
@@ -191,7 +222,7 @@ module.exports = async (req, res) => {
                 return;
             }
 
-            // If not authentication, handle as data append request
+            // If not history or authentication, handle as data append request
             const { values } = body;
 
             // Log environment variables (without sensitive data)

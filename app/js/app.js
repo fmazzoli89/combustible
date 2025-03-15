@@ -139,6 +139,7 @@ async function startApp() {
             currentUser = username;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-screen').style.display = 'block';
+            document.getElementById('user-display').textContent = username;
             initializeDateTimeFields();
             loadLists();
         }
@@ -349,6 +350,79 @@ function setupValidation() {
         });
     });
 }
+
+// Show history modal
+async function showHistorial() {
+    try {
+        const currentTab = document.querySelector('.tab-btn.active').textContent;
+        const sheetName = currentTab === 'CARGA' ? 'Cargas' : 'Descargas';
+        
+        const response = await fetch(`${BASE_API_ENDPOINT}/history`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: currentUser,
+                sheetName: sheetName
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch history');
+        }
+
+        const data = await response.json();
+        const historialList = document.getElementById('historial-list');
+        const historialTitle = document.getElementById('historial-title');
+        
+        // Update title
+        historialTitle.textContent = `Historial de ${sheetName}`;
+        
+        // Clear previous entries
+        historialList.innerHTML = '';
+        
+        // Add new entries
+        data.history.forEach(entry => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            
+            if (sheetName === 'Cargas') {
+                item.textContent = `${entry[0]} - ${entry[2]} - ${entry[3]} litros`;
+            } else {
+                item.textContent = `${entry[0]} - ${entry[2]} - ${entry[3]} - ${entry[5]} litros`;
+            }
+            
+            historialList.appendChild(item);
+        });
+        
+        // Show modal
+        document.getElementById('historial-modal').style.display = 'block';
+    } catch (error) {
+        console.error('Error fetching history:', error);
+        alert('Error al cargar el historial');
+    }
+}
+
+// Close history modal
+function closeHistorial() {
+    document.getElementById('historial-modal').style.display = 'none';
+}
+
+// Add keyboard support for closing modal
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        closeHistorial();
+    }
+});
+
+// Close modal when clicking outside
+document.addEventListener('click', (event) => {
+    const modal = document.getElementById('historial-modal');
+    if (event.target === modal) {
+        closeHistorial();
+    }
+});
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
