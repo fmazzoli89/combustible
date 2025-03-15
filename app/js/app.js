@@ -45,6 +45,8 @@ function setupTabs() {
 // Google Sheets API functions
 async function appendToSheet(sheetName, values) {
     try {
+        console.log(`Attempting to send data to ${sheetName} sheet:`, values);
+        
         // Use our serverless function instead of directly calling Google Sheets API
         const response = await fetch('https://combustible-tramec.vercel.app/api/sheets', {
             method: 'POST',
@@ -55,23 +57,38 @@ async function appendToSheet(sheetName, values) {
                 sheetName,
                 values
             })
+        }).catch(fetchError => {
+            console.error('Fetch error (network level):', fetchError);
+            throw fetchError;
         });
 
-        const result = await response.json();
+        console.log('Response status:', response.status);
+        console.log('Response headers:', [...response.headers.entries()]);
         
-        if (!response.ok) {
-            console.error('API Error:', result);
-            throw new Error(result.error?.message || `HTTP error! status: ${response.status}`);
+        let responseText;
+        try {
+            responseText = await response.text();
+            console.log('Raw response:', responseText);
+            const result = JSON.parse(responseText);
+            
+            if (!response.ok) {
+                console.error('API Error:', result);
+                throw new Error(result.error?.message || `HTTP error! status: ${response.status}`);
+            }
+            
+            // Check for success in the new API response format
+            if (!result.success) {
+                console.error('API Error:', result);
+                throw new Error(result.message || 'Unknown error occurred');
+            }
+            
+            console.log('Success:', result);
+            return result;
+        } catch (parseError) {
+            console.error('Error parsing JSON response:', parseError);
+            console.error('Response text was:', responseText);
+            throw new Error(`Failed to parse response: ${parseError.message}`);
         }
-        
-        // Check for success in the new API response format
-        if (!result.success) {
-            console.error('API Error:', result);
-            throw new Error(result.message || 'Unknown error occurred');
-        }
-        
-        console.log('Success:', result);
-        return result;
     } catch (error) {
         console.error('Error details:', error);
         throw error;
