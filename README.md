@@ -1,98 +1,87 @@
-# Gestión de Combustible - Aplicación Web Móvil
+# Control de Combustible
 
-Una aplicación web simple para gestionar la carga y descarga de combustible y otros fluidos en obras de construcción.
+Una aplicación web simple para registrar cargas y descargas de combustible.
 
-## Características
+## Descripción
 
-- Registro de cargas de combustible
-  - Fecha y hora
-  - Estación de servicio
-  - Cantidad de litros (máx. 700)
+Esta aplicación permite registrar:
+- Cargas de combustible (desde estaciones de servicio)
+- Descargas de combustible (a máquinas)
+- Registro de aceites y fluidos
 
-- Registro de descargas de combustible
-  - Fecha y hora
-  - Obra
-  - Máquina
-  - Operario
-  - Cantidad de litros (máx. 400)
-  - Horómetro
-  - Aceites y fluidos adicionales
+## Configuración
 
-## Tecnologías
+1. Crear una hoja de Google Sheets
+2. Configurar Google Cloud Project:
+   - Crear un nuevo proyecto en Google Cloud Console
+   - Habilitar Google Sheets API
+   - Crear credenciales (API Key) con acceso a Google Sheets API
+3. Configurar la aplicación:
+   - Abrir `js/config.js`
+   - Agregar el ID de la hoja de Google (el string largo en la URL entre /d/ y /edit)
+   - Agregar la API Key generada
 
-- HTML5
-- CSS3
-- JavaScript (Vanilla)
-- Google Sheets API (próximamente)
+## Deployment en Vercel
 
-## Instalación
-
-1. Clona este repositorio
-2. Abre el archivo `app/index.html` en tu navegador
-
-## Uso
-
-1. Selecciona la pestaña "CARGA" o "DESCARGA" según la operación que desees realizar
-2. Completa los campos requeridos
-3. Presiona el botón correspondiente para registrar la operación
-
-## Próximas Mejoras
-
-- Integración con Google Sheets para almacenamiento de datos
-- Autenticación de usuarios
-- Listas dinámicas de obras, máquinas y operarios
-- Validaciones adicionales
-- Generación de reportes
-
-## Licencia
-
-MIT 
-
-# Combustible App
-
-A simple web application for tracking fuel usage.
-
-## Project Structure
-
-- `app/`: Contains the frontend static files
-- `api/`: Contains the serverless API functions
-
-## API Endpoints
-
-- `/api`: Root API endpoint
-- `/api/hello`: Simple hello world endpoint
-- `/api/env-check`: Checks environment variables
-- `/api/sheets-test`: Tests Google Sheets connection
-- `/api/sheets`: Endpoint for adding data to Google Sheets
-
-## Deployment
-
-This project is designed to be deployed to Vercel. To deploy:
-
-1. Push the code to a GitHub repository
-2. Connect the repository to Vercel
-3. Set the following environment variables in Vercel:
-   - `SHEET_ID`: Your Google Sheet ID
-   - `CLIENT_EMAIL`: The service account email from your Google API credentials
-   - `PRIVATE_KEY`: The private key from your Google API credentials
-
-## Local Development
-
-To run the project locally:
-
+1. Instalar Vercel CLI (opcional):
 ```bash
-# Install dependencies
-npm install
-
-# Start the development server
-npm start
+npm i -g vercel
 ```
 
-## Troubleshooting
+2. Deployar a Vercel:
+   - **Opción 1 - GitHub:**
+     1. Subir el código a un repositorio de GitHub
+     2. Importar el proyecto en [Vercel](https://vercel.com/import)
+     3. Seleccionar el repositorio
+     4. Vercel detectará automáticamente la configuración
 
-If you encounter issues with the API endpoints, check the following:
+   - **Opción 2 - Vercel CLI:**
+     ```bash
+     vercel
+     ```
 
-1. Make sure the environment variables are correctly set in Vercel
-2. Check the Vercel deployment logs for any errors
-3. Use the `/api/env-check` endpoint to verify environment variables
-4. Use the test pages in the `app/` directory to test the API endpoints 
+3. La aplicación estará disponible en un dominio `.vercel.app`
+
+## Uso Local
+
+1. Navegar al directorio de la aplicación:
+```bash
+cd app
+```
+
+2. Iniciar un servidor local:
+```bash
+python3 -m http.server 8000
+```
+
+3. Abrir en el navegador:
+```
+http://localhost:8000
+```
+
+## Estructura de la Aplicación
+
+```
+app/
+├── index.html          # Página principal
+├── css/
+│   └── styles.css      # Estilos
+└── js/
+    ├── app.js         # Lógica principal
+    └── config.js      # Configuración de Google Sheets
+```
+
+## Seguridad
+
+- No compartir la API Key
+- Configurar restricciones apropiadas en Google Cloud Console
+- Limitar el acceso a la hoja de Google Sheets
+- En producción, configurar CORS y restricciones de dominio para la API Key
+
+## Soporte
+
+Para problemas o preguntas:
+1. Verificar la configuración en `config.js`
+2. Revisar la consola del navegador para errores
+3. Verificar el acceso a la hoja de Google Sheets
+4. Verificar los logs de deployment en Vercel 
