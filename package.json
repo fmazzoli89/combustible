@@ -1,0 +1,10 @@
+{
+    "name": "combustible",
+    "version": "1.0.0",
+    "description": "Aplicación web para gestión de combustible",
+    "scripts": {
+        "start": "npx serve app"
+    },
+    "author": "",
+    "license": "MIT"
+} 
