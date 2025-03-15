@@ -6,7 +6,8 @@
         "start": "npx serve app"
     },
     "dependencies": {
-        "node-fetch": "^2.6.7"
+        "node-fetch": "^2.6.7",
+        "body-parser": "^1.20.2"
     },
     "author": "",
     "license": "MIT"

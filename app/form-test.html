@@ -39,6 +39,20 @@
     <p>This page tests the API endpoints using form submissions instead of fetch.</p>
     
     <div class="test-section">
+        <h2>Test Root API</h2>
+        <p>This will open the root API in a new tab:</p>
+        <a href="https://combustible-tramec.vercel.app/api" target="_blank">
+            <button type="button">Open Root API</button>
+        </a>
+        
+        <p>Or view it in an iframe:</p>
+        <iframe name="rootFrame" id="rootFrame"></iframe>
+        <button onclick="document.getElementById('rootFrame').src='https://combustible-tramec.vercel.app/api'">
+            Load in iframe
+        </button>
+    </div>
+    
+    <div class="test-section">
         <h2>Test Hello API</h2>
         <p>This will open the API in a new tab:</p>
         <a href="https://combustible-tramec.vercel.app/api/hello" target="_blank">
