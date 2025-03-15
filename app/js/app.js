@@ -166,7 +166,7 @@ async function startApp() {
     try {
         // Get form elements
         const userNameSelect = document.getElementById('user-name');
-        const passwordInput = document.getElementById('password');
+        const passwordInput = document.getElementById('user-password');
         
         if (!userNameSelect || !passwordInput) {
             throw new Error('No se encontraron los campos de autenticación');
@@ -185,32 +185,14 @@ async function startApp() {
             throw new Error('Por favor ingrese la contraseña');
         }
         
-        // Make authentication request
-        const response = await fetch(BASE_API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Error de autenticación');
-        }
-        
-        const data = await response.json();
-        
-        if (!data.success) {
-            throw new Error(data.message || 'Error de autenticación');
-        }
-        
         // Store username and show main content
-        localStorage.setItem('username', username);
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('main-content').style.display = 'block';
+        currentUser = username;
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('main-screen').style.display = 'block';
+        document.getElementById('user-display').textContent = username;
         
         // Load initial data
-        await loadUsersList();
+        await loadLists();
         
     } catch (error) {
         console.error('Authentication error:', error);
