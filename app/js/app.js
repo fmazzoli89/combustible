@@ -198,8 +198,17 @@ async function handleCarga(event) {
     };
     
     try {
+        // Format the date without timezone adjustment since input is already in local time
+        const date = new Date(data.fecha);
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
+        
         const values = [
-            formatDateGMT3(new Date(data.fecha)),
+            formattedDate,
             data.tipo,
             data.estacion,
             data.litros,
@@ -238,8 +247,17 @@ async function handleDescarga(event) {
     };
     
     try {
+        // Format the date without timezone adjustment since input is already in local time
+        const date = new Date(data.fecha);
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
+        
         const values = [
-            formatDateGMT3(new Date(data.fecha)),
+            formattedDate,
             data.tipo,
             data.obra,
             data.maquina,
