@@ -5,6 +5,9 @@
     "scripts": {
         "start": "npx serve app"
     },
+    "dependencies": {
+        "node-fetch": "^2.6.7"
+    },
     "author": "",
     "license": "MIT"
 } 

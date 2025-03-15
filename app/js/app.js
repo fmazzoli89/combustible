@@ -44,44 +44,28 @@ function setupTabs() {
 
 // Google Sheets API functions
 async function appendToSheet(sheetName, values) {
-    const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${config.SHEET_ID}/values/${sheetName}!A:Z:append`;
-    const params = new URLSearchParams({
-        valueInputOption: 'USER_ENTERED',
-        key: config.API_KEY,
-        insertDataOption: 'INSERT_ROWS'
-    });
-    
     try {
-        // Using a CORS proxy to handle the request
-        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-        const response = await fetch(proxyUrl + `${endpoint}?${params}`, {
+        // Use our serverless function instead of directly calling Google Sheets API
+        const response = await fetch('/api/sheets', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({
-                range: `${sheetName}!A:Z`,
-                majorDimension: "ROWS",
-                values: [values]
+                sheetName,
+                values
             })
         });
 
-        const responseText = await response.text();
-        console.log('Raw response:', responseText);
-
-        try {
-            const result = JSON.parse(responseText);
-            if (!response.ok) {
-                console.error('API Error:', result);
-                throw new Error(result.error?.message || `HTTP error! status: ${response.status}`);
-            }
-            console.log('Success:', result);
-            return result;
-        } catch (parseError) {
-            console.error('Error parsing response:', parseError);
-            throw new Error('Invalid response from server');
+        const result = await response.json();
+        
+        if (!response.ok) {
+            console.error('API Error:', result);
+            throw new Error(result.error?.message || `HTTP error! status: ${response.status}`);
         }
+        
+        console.log('Success:', result);
+        return result;
     } catch (error) {
         console.error('Error details:', error);
         throw error;

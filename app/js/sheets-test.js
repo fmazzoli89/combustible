@@ -1,37 +1,26 @@
 // Test Google Sheets access
 async function testSheetsAccess() {
-    const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${config.SHEET_ID}`;
-    const params = new URLSearchParams({
-        key: config.API_KEY,
-        includeGridData: false
-    });
-    
     try {
-        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-        console.log('Testing access to:', `${endpoint}?${params}`);
-        const response = await fetch(proxyUrl + `${endpoint}?${params}`, {
-            method: 'GET',
+        // Use our serverless function to test access
+        const response = await fetch('/api/sheets-test', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
+            },
+            body: JSON.stringify({
+                test: true
+            })
         });
 
-        const responseText = await response.text();
-        console.log('Raw response:', responseText);
-
-        try {
-            const data = JSON.parse(responseText);
-            if (!response.ok) {
-                console.error('API Error:', data);
-                throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
-            }
-            console.log('Sheet info:', data);
-            return data;
-        } catch (parseError) {
-            console.error('Error parsing response:', parseError);
-            throw new Error('Invalid response from server');
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('API Error:', errorData);
+            throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
         }
+
+        const data = await response.json();
+        console.log('Sheet info:', data);
+        return data;
     } catch (error) {
         console.error('Error accessing sheet:', error);
         throw error;

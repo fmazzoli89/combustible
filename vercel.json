@@ -1,9 +1,15 @@
 {
     "version": 2,
     "builds": [
-        { "src": "app/**/*", "use": "@vercel/static" }
+        { "src": "app/**/*", "use": "@vercel/static" },
+        { "src": "api/**/*.js", "use": "@vercel/node" }
     ],
     "routes": [
+        { "src": "/api/(.*)", "dest": "/api/$1" },
         { "src": "/(.*)", "dest": "/app/$1" }
-    ]
+    ],
+    "env": {
+        "SHEET_ID": "1hUZfOdDwG44M5k2-dI0NXpH8248LAcwlBde9emw2GP8",
+        "API_KEY": "AIzaSyA9DajDlIlCLytHNPCkrCCfVUx5yQRohxI"
+    }
 } 
