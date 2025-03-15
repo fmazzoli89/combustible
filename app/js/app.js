@@ -3,8 +3,8 @@ let currentUser = '';
 
 // Format date to DD/M/YYYY, HH:mm in GMT-3
 function formatDateGMT3(date) {
-    // Convert to GMT-3
-    const gmt3Date = new Date(date.getTime() - (3 * 60 * 60 * 1000));
+    // Convert to GMT-3 by adding 3 hours
+    const gmt3Date = new Date(date.getTime() + (3 * 60 * 60 * 1000));
     
     const day = gmt3Date.getDate();
     const month = gmt3Date.getMonth() + 1;
@@ -19,7 +19,7 @@ function formatDateGMT3(date) {
 function initializeDateTimeFields() {
     const now = new Date();
     // Add 3 hours to get to GMT-3
-    const gmt3Date = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+    const gmt3Date = new Date(now.getTime() + (3 * 60 * 60 * 1000));
     const dateString = gmt3Date.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
     document.getElementById('carga-fecha').value = dateString;
     document.getElementById('descarga-fecha').value = dateString;
@@ -403,13 +403,13 @@ async function showHistorial() {
             const item = document.createElement('div');
             item.className = 'history-item';
             
-            // Format the date from the entry
-            const date = formatDateGMT3(new Date(entry[0]));
+            // Use the date string directly from the sheet since it's already in the correct format
+            const dateStr = entry[0];
             
             if (sheetName === 'Cargas') {
-                item.textContent = `${date} - ${entry[2]} - ${entry[3]} litros`;
+                item.textContent = `${dateStr} - ${entry[2]} - ${entry[3]} litros`;
             } else {
-                item.textContent = `${date} - ${entry[2]} - ${entry[3]} - ${entry[5]} litros`;
+                item.textContent = `${dateStr} - ${entry[2]} - ${entry[3]} - ${entry[5]} litros`;
             }
             
             historialList.appendChild(item);
