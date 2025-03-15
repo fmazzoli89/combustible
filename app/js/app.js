@@ -99,7 +99,7 @@ async function handleCargaSubmit(event) {
             data.litros             // Litros
         ];
 
-        await appendToSheet(config.SHEET_NAME_CARGA, values);
+        await appendToSheet(SHEET_NAME_CARGA, values);
         alert('Carga registrada exitosamente');
         event.target.reset();
         initializeDateTimeFields();
@@ -139,7 +139,7 @@ async function handleDescargaSubmit(event) {
             data.fluidina           // Fluidina
         ];
 
-        await appendToSheet(config.SHEET_NAME_DESCARGA, values);
+        await appendToSheet(SHEET_NAME_DESCARGA, values);
         alert('Descarga registrada exitosamente');
         event.target.reset();
         initializeDateTimeFields();
