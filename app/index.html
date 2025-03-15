@@ -3,182 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Combustible</title>
+    <title>Control de Combustible</title>
     <link rel="stylesheet" href="css/styles.css">
-    <style>
-        #testArea {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        #testButton {
-            background-color: #f0ad4e;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #testResults {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
-            white-space: pre-wrap;
-            font-family: monospace;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-    </style>
 </head>
 <body>
-    <div class="container">
+    <div id="auth-screen" class="screen">
+        <h1>Control de Combustible</h1>
+        <div class="form-group">
+            <label for="user-name">Nombre/Identificador:</label>
+            <input type="text" id="user-name" required>
+            <button onclick="startApp()">Comenzar</button>
+        </div>
+    </div>
+
+    <div id="main-screen" class="screen" style="display: none;">
         <div class="tabs">
-            <button class="tab-btn active" data-tab="carga">CARGA</button>
-            <button class="tab-btn" data-tab="descarga">DESCARGA</button>
+            <button class="tab-btn active" onclick="showTab('carga')">CARGA</button>
+            <button class="tab-btn" onclick="showTab('descarga')">DESCARGA</button>
         </div>
 
-        <div class="tab-content" id="carga">
-            <form id="cargaForm">
+        <div id="carga" class="tab-content active">
+            <h2>Carga de Combustible</h2>
+            <form id="carga-form" onsubmit="handleCarga(event)">
                 <div class="form-group">
-                    <label for="cargaFecha">Fecha y hora</label>
-                    <input type="datetime-local" id="cargaFecha" required>
+                    <label for="carga-fecha">Fecha y Hora:</label>
+                    <input type="datetime-local" id="carga-fecha" required>
                 </div>
-
+                
                 <div class="form-group">
-                    <label for="estacion">Estación</label>
-                    <select id="estacion" required>
-                        <option value="INTERCAR" selected>INTERCAR</option>
+                    <label for="carga-estacion">Estación:</label>
+                    <select id="carga-estacion" required>
+                        <option value="INTERCAR">INTERCAR</option>
                         <option value="DEFLORES">DEFLORES</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="cargaLitros">Litros</label>
-                    <input type="number" id="cargaLitros" max="700" required>
+                    <label for="carga-litros">Litros:</label>
+                    <input type="number" id="carga-litros" max="700" required>
                 </div>
 
-                <button type="submit" class="btn-primary">CARGAR</button>
+                <button type="submit">CARGAR</button>
             </form>
         </div>
 
-        <div class="tab-content hidden" id="descarga">
-            <form id="descargaForm">
+        <div id="descarga" class="tab-content">
+            <h2>Descarga de Combustible</h2>
+            <form id="descarga-form" onsubmit="handleDescarga(event)">
                 <div class="form-group">
-                    <label for="descargaFecha">Fecha y hora</label>
-                    <input type="datetime-local" id="descargaFecha" required>
+                    <label for="descarga-fecha">Fecha y Hora:</label>
+                    <input type="datetime-local" id="descarga-fecha" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="obra">Obra</label>
-                    <select id="obra" required>
-                        <option value="OBRA 1">OBRA 1</option>
+                    <label for="descarga-obra">Obra:</label>
+                    <select id="descarga-obra" required>
+                        <option value="obra1">Obra 1</option>
+                        <option value="obra2">Obra 2</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="maquina">Máquina</label>
-                    <select id="maquina" required>
-                        <option value="MAQUINA 1">MAQUINA 1</option>
+                    <label for="descarga-maquina">Máquina:</label>
+                    <select id="descarga-maquina" required>
+                        <option value="maquina1">Máquina 1</option>
+                        <option value="maquina2">Máquina 2</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="operario">Operario</label>
-                    <select id="operario" required>
-                        <option value="OPERARIO 1">OPERARIO 1</option>
+                    <label for="descarga-operario">Operario:</label>
+                    <select id="descarga-operario" required>
+                        <option value="operario1">Operario 1</option>
+                        <option value="operario2">Operario 2</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="descargaLitros">Litros</label>
-                    <input type="number" id="descargaLitros" max="400" required>
+                    <label for="descarga-litros">Litros:</label>
+                    <input type="number" id="descarga-litros" max="400" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="horometro">Horómetro</label>
-                    <input type="number" id="horometro" step="0.1" required>
+                    <label for="descarga-horometro">Horómetro:</label>
+                    <input type="number" id="descarga-horometro" step="0.1" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="aceiteMotor">Aceite de motor (litros)</label>
-                    <input type="number" id="aceiteMotor" value="0" step="0.1">
+                    <label for="descarga-aceite-motor">Aceite de Motor (litros):</label>
+                    <input type="number" id="descarga-aceite-motor" value="0" step="0.1">
                 </div>
 
                 <div class="form-group">
-                    <label for="aceiteHidraulico">Aceite hidráulico (litros)</label>
-                    <input type="number" id="aceiteHidraulico" value="0" step="0.1">
+                    <label for="descarga-aceite-hidraulico">Aceite Hidráulico (litros):</label>
+                    <input type="number" id="descarga-aceite-hidraulico" value="0" step="0.1">
                 </div>
 
                 <div class="form-group">
-                    <label for="fluidina">Fluidina (litros)</label>
-                    <input type="number" id="fluidina" value="0" step="0.1">
+                    <label for="descarga-fluidina">Fluidina (litros):</label>
+                    <input type="number" id="descarga-fluidina" value="0" step="0.1">
                 </div>
 
-                <button type="submit" class="btn-primary">DESCARGAR</button>
+                <button type="submit">DESCARGAR</button>
             </form>
         </div>
     </div>
-    
-    <div id="testArea">
-        <h3>API Connection Test</h3>
-        <button id="testButton" onclick="runConnectionTest()">Test API Connection</button>
-        <div id="testResults"></div>
-    </div>
 
+    <script src="js/config.js"></script>
     <script src="js/app.js"></script>
-    <script src="js/sheets-test.js"></script>
-    <script>
-        // Test Google Sheets access on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            testSheetsAccess().then(info => {
-                console.log('Successfully connected to sheet:', info.properties.title);
-            }).catch(error => {
-                console.error('Failed to connect to sheet:', error);
-            });
-        });
-
-        async function runConnectionTest() {
-            const resultsDiv = document.getElementById('testResults');
-            resultsDiv.innerHTML = 'Testing API connection...\n';
-            
-            try {
-                // Test a simple fetch to the API endpoint
-                resultsDiv.innerHTML += 'Sending request to API...\n';
-                
-                const response = await fetch('https://combustible-tramec.vercel.app/api/sheets-test', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ test: true })
-                }).catch(error => {
-                    resultsDiv.innerHTML += `Fetch error: ${error.message}\n`;
-                    throw error;
-                });
-                
-                resultsDiv.innerHTML += `Response status: ${response.status}\n`;
-                
-                const responseText = await response.text();
-                resultsDiv.innerHTML += `Raw response: ${responseText}\n`;
-                
-                try {
-                    const data = JSON.parse(responseText);
-                    resultsDiv.innerHTML += `Parsed response: ${JSON.stringify(data, null, 2)}\n`;
-                    
-                    if (data.success) {
-                        resultsDiv.innerHTML += 'Connection successful!\n';
-                    } else {
-                        resultsDiv.innerHTML += `Connection failed: ${data.message || 'Unknown error'}\n`;
-                    }
-                } catch (parseError) {
-                    resultsDiv.innerHTML += `Error parsing response: ${parseError.message}\n`;
-                }
-            } catch (error) {
-                resultsDiv.innerHTML += `Test failed: ${error.message}\n`;
-            }
-        }
-    </script>
 </body>
 </html> 

@@ -1,175 +1,147 @@
-// Google Sheets configuration
-const SHEET_ID = '1hUZfOdDwG44M5k2-dI0NXpH8248LAcwlBde9emw2GP8';
-const SHEET_NAME_CARGA = 'Cargas';
-const SHEET_NAME_DESCARGA = 'Descargas';
-const API_KEY = 'AIzaSyA9DajDlIlCLytHNPCkrCCfVUx5yQRohxI';
+// Global state
+let currentUser = '';
 
-// Initialize date-time fields with current date and time
+// Initialize date/time fields with current date/time
 function initializeDateTimeFields() {
     const now = new Date();
     const dateString = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
-    document.getElementById('cargaFecha').value = dateString;
-    document.getElementById('descargaFecha').value = dateString;
+    document.getElementById('carga-fecha').value = dateString;
+    document.getElementById('descarga-fecha').value = dateString;
 }
 
-// Helper function to split datetime into date and time
-function splitDateTime(dateTimeStr) {
-    const dt = new Date(dateTimeStr);
-    const date = dt.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const time = dt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
-    return [date, time];
+// Start the application after user enters their name
+function startApp() {
+    const userNameInput = document.getElementById('user-name');
+    const userName = userNameInput.value.trim();
+    
+    if (!userName) {
+        alert('Por favor ingrese su nombre/identificador');
+        return;
+    }
+    
+    currentUser = userName;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('main-screen').style.display = 'block';
+    initializeDateTimeFields();
 }
 
-// Tab switching functionality
-function setupTabs() {
-    const tabs = document.querySelectorAll('.tab-btn');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Remove active class from all tabs
-            tabs.forEach(t => t.classList.remove('active'));
-            // Add active class to clicked tab
-            tab.classList.add('active');
-            
-            // Hide all content sections
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-            
-            // Show selected content
-            const targetId = tab.dataset.tab;
-            document.getElementById(targetId).classList.remove('hidden');
-        });
-    });
-}
-
-// Google Sheets API functions
-async function appendToSheet(sheetName, values) {
-    try {
-        console.log(`Attempting to send data to ${sheetName} sheet:`, values);
-        
-        // Use our serverless function instead of directly calling Google Sheets API
-        const response = await fetch('https://combustible-tramec.vercel.app/api/sheets', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                sheetName,
-                values
-            })
-        }).catch(fetchError => {
-            console.error('Fetch error (network level):', fetchError);
-            throw fetchError;
-        });
-
-        console.log('Response status:', response.status);
-        console.log('Response headers:', [...response.headers.entries()]);
-        
-        let responseText;
-        try {
-            responseText = await response.text();
-            console.log('Raw response:', responseText);
-            const result = JSON.parse(responseText);
-            
-            if (!response.ok) {
-                console.error('API Error:', result);
-                throw new Error(result.error?.message || `HTTP error! status: ${response.status}`);
-            }
-            
-            // Check for success in the new API response format
-            if (!result.success) {
-                console.error('API Error:', result);
-                throw new Error(result.message || 'Unknown error occurred');
-            }
-            
-            console.log('Success:', result);
-            return result;
-        } catch (parseError) {
-            console.error('Error parsing JSON response:', parseError);
-            console.error('Response text was:', responseText);
-            throw new Error(`Failed to parse response: ${parseError.message}`);
+// Show selected tab
+function showTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent.toLowerCase().includes(tabName)) {
+            btn.classList.add('active');
         }
-    } catch (error) {
-        console.error('Error details:', error);
-        throw error;
-    }
+    });
+    
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById(tabName).classList.add('active');
 }
 
-// Form submission handlers
-function setupForms() {
-    const cargaForm = document.getElementById('cargaForm');
-    const descargaForm = document.getElementById('descargaForm');
-
-    cargaForm.addEventListener('submit', handleCargaSubmit);
-    descargaForm.addEventListener('submit', handleDescargaSubmit);
-}
-
-async function handleCargaSubmit(event) {
+// Handle carga form submission
+async function handleCarga(event) {
     event.preventDefault();
     
     const data = {
-        fecha: document.getElementById('cargaFecha').value,
-        estacion: document.getElementById('estacion').value,
-        litros: document.getElementById('cargaLitros').value
+        fecha: document.getElementById('carga-fecha').value,
+        estacion: document.getElementById('carga-estacion').value,
+        litros: document.getElementById('carga-litros').value,
+        usuario: currentUser,
+        tipo: 'CARGA'
     };
-
+    
     try {
-        const [date, time] = splitDateTime(data.fecha);
-        const values = [
-            date,                   // Fecha
-            time,                   // Hora
-            data.estacion,          // Estación
-            data.litros             // Litros
-        ];
-
-        await appendToSheet(SHEET_NAME_CARGA, values);
+        await sendToGoogleSheets(data);
         alert('Carga registrada exitosamente');
-        event.target.reset();
+        document.getElementById('carga-form').reset();
         initializeDateTimeFields();
     } catch (error) {
-        console.error('Error al registrar carga:', error);
-        alert('Error al registrar la carga');
+        alert('Error al registrar la carga: ' + error.message);
+        console.error('Error:', error);
     }
 }
 
-async function handleDescargaSubmit(event) {
+// Handle descarga form submission
+async function handleDescarga(event) {
     event.preventDefault();
     
     const data = {
-        fecha: document.getElementById('descargaFecha').value,
-        obra: document.getElementById('obra').value,
-        maquina: document.getElementById('maquina').value,
-        operario: document.getElementById('operario').value,
-        litros: document.getElementById('descargaLitros').value,
-        horometro: document.getElementById('horometro').value,
-        aceiteMotor: document.getElementById('aceiteMotor').value,
-        aceiteHidraulico: document.getElementById('aceiteHidraulico').value,
-        fluidina: document.getElementById('fluidina').value
+        fecha: document.getElementById('descarga-fecha').value,
+        obra: document.getElementById('descarga-obra').value,
+        maquina: document.getElementById('descarga-maquina').value,
+        operario: document.getElementById('descarga-operario').value,
+        litros: document.getElementById('descarga-litros').value,
+        horometro: document.getElementById('descarga-horometro').value,
+        aceiteMotor: document.getElementById('descarga-aceite-motor').value,
+        aceiteHidraulico: document.getElementById('descarga-aceite-hidraulico').value,
+        fluidina: document.getElementById('descarga-fluidina').value,
+        usuario: currentUser,
+        tipo: 'DESCARGA'
     };
-
+    
     try {
-        const [date, time] = splitDateTime(data.fecha);
-        const values = [
-            date,                   // Fecha
-            time,                   // Hora
-            data.obra,              // Obra
-            data.maquina,           // Máquina
-            data.operario,          // Operario
-            data.litros,            // Litros
-            data.horometro,         // Horómetro
-            data.aceiteMotor,       // Aceite de motor
-            data.aceiteHidraulico,  // Aceite hidráulico
-            data.fluidina           // Fluidina
-        ];
-
-        await appendToSheet(SHEET_NAME_DESCARGA, values);
+        await sendToGoogleSheets(data);
         alert('Descarga registrada exitosamente');
-        event.target.reset();
+        document.getElementById('descarga-form').reset();
         initializeDateTimeFields();
     } catch (error) {
-        console.error('Error al registrar descarga:', error);
-        alert('Error al registrar la descarga');
+        alert('Error al registrar la descarga: ' + error.message);
+        console.error('Error:', error);
     }
+}
+
+// Send data to Google Sheets
+async function sendToGoogleSheets(data) {
+    if (!SHEET_ID || !API_KEY) {
+        throw new Error('Configuración de Google Sheets no encontrada');
+    }
+    
+    const values = data.tipo === 'CARGA' 
+        ? [[
+            new Date(data.fecha).toLocaleString(),
+            data.tipo,
+            data.estacion,
+            data.litros,
+            '',
+            '',
+            '',
+            '',
+            '',
+            data.usuario
+        ]]
+        : [[
+            new Date(data.fecha).toLocaleString(),
+            data.tipo,
+            data.obra,
+            data.litros,
+            data.maquina,
+            data.operario,
+            data.horometro,
+            data.aceiteMotor,
+            data.aceiteHidraulico,
+            data.fluidina,
+            data.usuario
+        ]];
+
+    const response = await fetch(ENDPOINTS.APPEND, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            values: values
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error('Error al enviar datos a Google Sheets');
+    }
+
+    return response.json();
 }
 
 // Input validation
@@ -179,9 +151,9 @@ function setupValidation() {
     litrosInputs.forEach(input => {
         input.addEventListener('input', () => {
             const value = parseFloat(input.value);
-            if (input.id === 'cargaLitros' && value > 700) {
+            if (input.id === 'carga-litros' && value > 700) {
                 input.value = 700;
-            } else if (input.id === 'descargaLitros' && value > 400) {
+            } else if (input.id === 'descarga-litros' && value > 400) {
                 input.value = 400;
             }
         });
@@ -190,8 +162,9 @@ function setupValidation() {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
-    initializeDateTimeFields();
-    setupTabs();
-    setupForms();
+    // Initialize date/time fields if user is already authenticated
+    if (document.getElementById('main-screen').style.display !== 'none') {
+        initializeDateTimeFields();
+    }
     setupValidation();
 }); 
