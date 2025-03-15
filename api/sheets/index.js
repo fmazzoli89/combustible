@@ -35,6 +35,7 @@ module.exports = async (req, res) => {
         const { values } = body;
 
         console.log('Received values:', values); // Debug log
+        console.log('Sheet ID:', process.env.SHEET_ID); // Debug log
 
         if (!values || !Array.isArray(values)) {
             console.log('Invalid data format:', body); // Debug log
@@ -42,11 +43,26 @@ module.exports = async (req, res) => {
             return;
         }
 
+        // First, try to get the sheet to verify access
+        try {
+            await sheets.spreadsheets.get({
+                spreadsheetId: process.env.SHEET_ID
+            });
+        } catch (error) {
+            console.error('Error accessing sheet:', error);
+            res.status(500).json({
+                error: 'Failed to access sheet',
+                details: error.message
+            });
+            return;
+        }
+
         // Append values to the sheet
         const response = await sheets.spreadsheets.values.append({
             spreadsheetId: process.env.SHEET_ID,
-            range: 'Sheet1!A:K',
+            range: 'A:K', // Simplified range format
             valueInputOption: 'USER_ENTERED',
+            insertDataOption: 'INSERT_ROWS',
             resource: {
                 values: [values]
             }
