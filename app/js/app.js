@@ -1,9 +1,23 @@
+// Google Sheets configuration
+const SHEET_ID = '1hUZfOdDwG44M5k2-dI0NXpH8248LAcwlBde9emw2GP8';
+const SHEET_NAME_CARGA = 'Cargas';
+const SHEET_NAME_DESCARGA = 'Descargas';
+const API_KEY = 'AIzaSyA9DajDlIlCLytHNPCkrCCfVUx5yQRohxI';
+
 // Initialize date-time fields with current date and time
 function initializeDateTimeFields() {
     const now = new Date();
     const dateString = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
     document.getElementById('cargaFecha').value = dateString;
     document.getElementById('descargaFecha').value = dateString;
+}
+
+// Helper function to split datetime into date and time
+function splitDateTime(dateTimeStr) {
+    const dt = new Date(dateTimeStr);
+    const date = dt.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const time = dt.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
+    return [date, time];
 }
 
 // Tab switching functionality
@@ -28,6 +42,52 @@ function setupTabs() {
     });
 }
 
+// Google Sheets API functions
+async function appendToSheet(sheetName, values) {
+    const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${config.SHEET_ID}/values/${sheetName}!A:Z:append`;
+    const params = new URLSearchParams({
+        valueInputOption: 'USER_ENTERED',
+        key: config.API_KEY,
+        insertDataOption: 'INSERT_ROWS'
+    });
+    
+    try {
+        // Using a CORS proxy to handle the request
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        const response = await fetch(proxyUrl + `${endpoint}?${params}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                range: `${sheetName}!A:Z`,
+                majorDimension: "ROWS",
+                values: [values]
+            })
+        });
+
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+
+        try {
+            const result = JSON.parse(responseText);
+            if (!response.ok) {
+                console.error('API Error:', result);
+                throw new Error(result.error?.message || `HTTP error! status: ${response.status}`);
+            }
+            console.log('Success:', result);
+            return result;
+        } catch (parseError) {
+            console.error('Error parsing response:', parseError);
+            throw new Error('Invalid response from server');
+        }
+    } catch (error) {
+        console.error('Error details:', error);
+        throw error;
+    }
+}
+
 // Form submission handlers
 function setupForms() {
     const cargaForm = document.getElementById('cargaForm');
@@ -47,8 +107,15 @@ async function handleCargaSubmit(event) {
     };
 
     try {
-        // Here we'll add Google Sheets integration later
-        console.log('Carga data:', data);
+        const [date, time] = splitDateTime(data.fecha);
+        const values = [
+            date,                   // Fecha
+            time,                   // Hora
+            data.estacion,          // Estación
+            data.litros             // Litros
+        ];
+
+        await appendToSheet(config.SHEET_NAME_CARGA, values);
         alert('Carga registrada exitosamente');
         event.target.reset();
         initializeDateTimeFields();
@@ -74,8 +141,21 @@ async function handleDescargaSubmit(event) {
     };
 
     try {
-        // Here we'll add Google Sheets integration later
-        console.log('Descarga data:', data);
+        const [date, time] = splitDateTime(data.fecha);
+        const values = [
+            date,                   // Fecha
+            time,                   // Hora
+            data.obra,              // Obra
+            data.maquina,           // Máquina
+            data.operario,          // Operario
+            data.litros,            // Litros
+            data.horometro,         // Horómetro
+            data.aceiteMotor,       // Aceite de motor
+            data.aceiteHidraulico,  // Aceite hidráulico
+            data.fluidina           // Fluidina
+        ];
+
+        await appendToSheet(config.SHEET_NAME_DESCARGA, values);
         alert('Descarga registrada exitosamente');
         event.target.reset();
         initializeDateTimeFields();

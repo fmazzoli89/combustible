@@ -94,6 +94,18 @@
             </form>
         </div>
     </div>
+    <script src="js/config.js"></script>
+    <script src="js/sheets-test.js"></script>
     <script src="js/app.js"></script>
+    <script>
+        // Test Google Sheets access on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            testSheetsAccess().then(info => {
+                console.log('Successfully connected to sheet:', info.properties.title);
+            }).catch(error => {
+                console.error('Failed to connect to sheet:', error);
+            });
+        });
+    </script>
 </body>
 </html> 
