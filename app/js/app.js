@@ -263,32 +263,62 @@ async function handleCarga(event) {
     }
 }
 
+// Get GPS location
+async function getLocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error('Geolocalización no está soportada en este dispositivo'));
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const location = `${position.coords.latitude},${position.coords.longitude}`;
+                resolve(location);
+            },
+            (error) => {
+                console.error('Error getting location:', error);
+                reject(new Error('No se pudo obtener la ubicación. Por favor habilite el GPS.'));
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    });
+}
+
 // Handle descarga form submission
 async function handleDescarga(event) {
     event.preventDefault();
     
-    const now = new Date();
-    const day = now.getDate();
-    const month = now.getMonth() + 1;
-    const year = now.getFullYear();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
-    
-    const data = {
-        obra: document.getElementById('descarga-obra').value,
-        maquina: document.getElementById('descarga-maquina').value,
-        operario: document.getElementById('descarga-operario').value,
-        litros: document.getElementById('descarga-litros').value,
-        horometro: document.getElementById('descarga-horometro').value,
-        aceiteMotor: document.getElementById('descarga-aceite-motor').value,
-        aceiteHidraulico: document.getElementById('descarga-aceite-hidraulico').value,
-        fluidina: document.getElementById('descarga-fluidina').value,
-        usuario: currentUser,
-        tipo: 'DESCARGA'
-    };
-    
     try {
+        // Get GPS location first
+        const location = await getLocation();
+        
+        const now = new Date();
+        const day = now.getDate();
+        const month = now.getMonth() + 1;
+        const year = now.getFullYear();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
+        
+        const data = {
+            obra: document.getElementById('descarga-obra').value,
+            maquina: document.getElementById('descarga-maquina').value,
+            operario: document.getElementById('descarga-operario').value,
+            litros: document.getElementById('descarga-litros').value,
+            horometro: document.getElementById('descarga-horometro').value,
+            aceiteMotor: document.getElementById('descarga-aceite-motor').value,
+            aceiteHidraulico: document.getElementById('descarga-aceite-hidraulico').value,
+            fluidina: document.getElementById('descarga-fluidina').value,
+            usuario: currentUser,
+            tipo: 'DESCARGA',
+            ubicacion: location
+        };
+        
         const values = [
             formattedDate,
             data.tipo,
@@ -300,7 +330,8 @@ async function handleDescarga(event) {
             data.aceiteMotor,
             data.aceiteHidraulico,
             data.fluidina,
-            data.usuario
+            data.usuario,
+            data.ubicacion // Add location to the values array
         ];
         
         await appendToSheet(values);
