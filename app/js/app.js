@@ -55,7 +55,15 @@ async function handleCarga(event) {
     };
     
     try {
-        await sendToGoogleSheets(data);
+        const values = [
+            new Date(data.fecha).toLocaleString(),
+            data.tipo,
+            data.estacion,
+            data.litros,
+            data.usuario
+        ];
+        
+        await appendToSheet(values);
         alert('Carga registrada exitosamente');
         document.getElementById('carga-form').reset();
         initializeDateTimeFields();
@@ -84,7 +92,21 @@ async function handleDescarga(event) {
     };
     
     try {
-        await sendToGoogleSheets(data);
+        const values = [
+            new Date(data.fecha).toLocaleString(),
+            data.tipo,
+            data.obra,
+            data.maquina,
+            data.operario,
+            data.litros,
+            data.horometro,
+            data.aceiteMotor,
+            data.aceiteHidraulico,
+            data.fluidina,
+            data.usuario
+        ];
+        
+        await appendToSheet(values);
         alert('Descarga registrada exitosamente');
         document.getElementById('descarga-form').reset();
         initializeDateTimeFields();
@@ -92,56 +114,6 @@ async function handleDescarga(event) {
         alert('Error al registrar la descarga: ' + error.message);
         console.error('Error:', error);
     }
-}
-
-// Send data to Google Sheets
-async function sendToGoogleSheets(data) {
-    if (!SHEET_ID || !API_KEY) {
-        throw new Error('Configuración de Google Sheets no encontrada');
-    }
-    
-    const values = data.tipo === 'CARGA' 
-        ? [[
-            new Date(data.fecha).toLocaleString(),
-            data.tipo,
-            data.estacion,
-            data.litros,
-            '',
-            '',
-            '',
-            '',
-            '',
-            data.usuario
-        ]]
-        : [[
-            new Date(data.fecha).toLocaleString(),
-            data.tipo,
-            data.obra,
-            data.litros,
-            data.maquina,
-            data.operario,
-            data.horometro,
-            data.aceiteMotor,
-            data.aceiteHidraulico,
-            data.fluidina,
-            data.usuario
-        ]];
-
-    const response = await fetch(ENDPOINTS.APPEND, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            values: values
-        })
-    });
-
-    if (!response.ok) {
-        throw new Error('Error al enviar datos a Google Sheets');
-    }
-
-    return response.json();
 }
 
 // Input validation
