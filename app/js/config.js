@@ -19,8 +19,10 @@ const ENDPOINTS = {
     SHEETS: `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values`,
 };
 
-// API endpoint for the serverless function
-const API_ENDPOINT = 'https://combustible-tramec.vercel.app/api/sheets';
+// API endpoint for the serverless function - dynamically set based on environment
+const API_ENDPOINT = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? '/api/sheets'  // Local development
+    : 'https://combustible-tramec.vercel.app/api/sheets';  // Production
 
 // Get OAuth2 token
 async function getAccessToken() {
@@ -66,6 +68,7 @@ async function getAccessToken() {
 // Function to append data to the sheet
 async function appendToSheet(values) {
     try {
+        console.log('Sending values to API:', values); // Debug log
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
             headers: {
@@ -74,9 +77,12 @@ async function appendToSheet(values) {
             body: JSON.stringify({ values })
         });
 
+        console.log('Response status:', response.status); // Debug log
+
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.details || error.error || 'Failed to append data to sheet');
+            const errorText = await response.text();
+            console.error('Error response:', errorText); // Debug log
+            throw new Error(errorText || 'Failed to append data to sheet');
         }
 
         return response.json();
