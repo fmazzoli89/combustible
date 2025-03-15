@@ -104,22 +104,37 @@ async function loadUsersList() {
         }
         const data = await response.json();
         
-        // Populate users dropdown
+        // Get the select element
         const usersSelect = document.getElementById('user-name');
+        if (!usersSelect) {
+            throw new Error('Could not find user select element');
+        }
+        
+        // Clear existing options
         usersSelect.innerHTML = '<option value="">Seleccione un usuario</option>';
-        if (data.users && Array.isArray(data.users)) {
-            data.users.forEach(username => {
-                if (username) {
-                    const option = document.createElement('option');
-                    option.value = username;
-                    option.textContent = username;
-                    usersSelect.appendChild(option);
-                }
-            });
+        
+        // Check if we have users data
+        if (!data.users || !Array.isArray(data.users)) {
+            throw new Error('No se recibió la lista de usuarios del servidor');
+        }
+        
+        // Add user options
+        data.users.forEach(username => {
+            if (username && typeof username === 'string' && username.trim() !== '') {
+                const option = document.createElement('option');
+                option.value = username.trim();
+                option.textContent = username.trim();
+                usersSelect.appendChild(option);
+            }
+        });
+        
+        // If no users were added, show error
+        if (usersSelect.options.length <= 1) {
+            throw new Error('No hay usuarios disponibles');
         }
     } catch (error) {
         console.error('Error loading users:', error);
-        alert('Error al cargar la lista de usuarios');
+        alert('Error al cargar la lista de usuarios: ' + error.message);
     }
 }
 
@@ -146,36 +161,63 @@ async function authenticateUser(username, password) {
     }
 }
 
-// Start the application after user enters their name
+// Start the application
 async function startApp() {
-    const userNameSelect = document.getElementById('user-name');
-    const passwordInput = document.getElementById('user-password');
-    const username = userNameSelect.value.trim();
-    const password = passwordInput.value.trim();
-    
-    if (!username) {
-        alert('Por favor seleccione un usuario');
-        return;
-    }
-
-    if (!password) {
-        alert('Por favor ingrese su contraseña');
-        return;
-    }
-    
     try {
-        const isAuthenticated = await authenticateUser(username, password);
-        if (isAuthenticated) {
-            currentUser = username;
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('main-screen').style.display = 'block';
-            document.getElementById('user-display').textContent = username;
-            initializeDateTimeFields();
-            loadLists();
+        // Get form elements
+        const userNameSelect = document.getElementById('user-name');
+        const passwordInput = document.getElementById('password');
+        
+        if (!userNameSelect || !passwordInput) {
+            throw new Error('No se encontraron los campos de autenticación');
         }
+        
+        // Get values
+        const username = userNameSelect.value;
+        const password = passwordInput.value;
+        
+        // Validate inputs
+        if (!username) {
+            throw new Error('Por favor seleccione un usuario');
+        }
+        
+        if (!password) {
+            throw new Error('Por favor ingrese la contraseña');
+        }
+        
+        // Make authentication request
+        const response = await fetch(BASE_API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Error de autenticación');
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message || 'Error de autenticación');
+        }
+        
+        // Store username and show main content
+        localStorage.setItem('username', username);
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        
+        // Load initial data
+        await loadUsersList();
+        
     } catch (error) {
-        alert('Error de autenticación: ' + error.message);
-        passwordInput.value = ''; // Clear password on error
+        console.error('Authentication error:', error);
+        if (passwordInput) {
+            passwordInput.value = '';
+        }
+        alert(error.message || 'Error de autenticación');
     }
 }
 
