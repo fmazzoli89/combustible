@@ -18,11 +18,25 @@ function formatDateGMT3(date) {
 // Initialize date/time fields with current date/time
 function initializeDateTimeFields() {
     const now = new Date();
-    // Add 3 hours to get to GMT-3
-    const gmt3Date = new Date(now.getTime() + (3 * 60 * 60 * 1000));
-    const dateString = gmt3Date.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
-    document.getElementById('carga-fecha').value = dateString;
-    document.getElementById('descarga-fecha').value = dateString;
+    // Format the current date and time without any timezone adjustments
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    
+    const dateString = `${year}-${month}-${day}T${hours}:${minutes}`;
+    
+    const cargaFecha = document.getElementById('carga-fecha');
+    const descargaFecha = document.getElementById('descarga-fecha');
+    
+    // Set the values and make them read-only
+    cargaFecha.value = dateString;
+    descargaFecha.value = dateString;
+    
+    // Make the fields read-only
+    cargaFecha.readOnly = true;
+    descargaFecha.readOnly = true;
 }
 
 // Fetch and populate all lists
@@ -189,8 +203,15 @@ function showTab(tabName) {
 async function handleCarga(event) {
     event.preventDefault();
     
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
+    
     const data = {
-        fecha: document.getElementById('carga-fecha').value,
         estacion: document.getElementById('carga-estacion').value,
         litros: document.getElementById('carga-litros').value,
         usuario: currentUser,
@@ -198,14 +219,6 @@ async function handleCarga(event) {
     };
     
     try {
-        // Parse the date parts from the input value (format: YYYY-MM-DDThh:mm)
-        const [datePart, timePart] = data.fecha.split('T');
-        const [year, month, day] = datePart.split('-').map(Number);
-        const [hours, minutes] = timePart.split(':').map(Number);
-        
-        // Create formatted date string
-        const formattedDate = `${day}/${month}/${year}, ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        
         const values = [
             formattedDate,
             data.tipo,
@@ -217,7 +230,6 @@ async function handleCarga(event) {
         await appendToSheet(values);
         showCustomAlert('Carga Exitosa', () => {
             document.getElementById('carga-form').reset();
-            initializeDateTimeFields();
             // Clear number fields explicitly
             document.getElementById('carga-litros').value = '';
         });
@@ -231,8 +243,15 @@ async function handleCarga(event) {
 async function handleDescarga(event) {
     event.preventDefault();
     
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
+    
     const data = {
-        fecha: document.getElementById('descarga-fecha').value,
         obra: document.getElementById('descarga-obra').value,
         maquina: document.getElementById('descarga-maquina').value,
         operario: document.getElementById('descarga-operario').value,
@@ -246,14 +265,6 @@ async function handleDescarga(event) {
     };
     
     try {
-        // Parse the date parts from the input value (format: YYYY-MM-DDThh:mm)
-        const [datePart, timePart] = data.fecha.split('T');
-        const [year, month, day] = datePart.split('-').map(Number);
-        const [hours, minutes] = timePart.split(':').map(Number);
-        
-        // Create formatted date string
-        const formattedDate = `${day}/${month}/${year}, ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        
         const values = [
             formattedDate,
             data.tipo,
@@ -273,7 +284,6 @@ async function handleDescarga(event) {
         showCustomAlert('Descarga Exitosa', () => {
             document.getElementById('descarga-form').reset();
             document.getElementById('descarga-obra').value = selectedObra; // Restore the obra value
-            initializeDateTimeFields();
             // Clear number fields explicitly
             document.getElementById('descarga-litros').value = '';
             document.getElementById('descarga-horometro').value = '';
@@ -463,10 +473,5 @@ document.addEventListener('click', (event) => {
 document.addEventListener('DOMContentLoaded', () => {
     // Load users list
     loadUsersList();
-    
-    // Initialize date/time fields if user is already authenticated
-    if (document.getElementById('main-screen').style.display !== 'none') {
-        initializeDateTimeFields();
-    }
     setupValidation();
 }); 
