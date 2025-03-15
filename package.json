@@ -8,7 +8,9 @@
         "deploy": "vercel deploy --prod"
     },
     "dependencies": {
-        "googleapis": "^128.0.0"
+        "googleapis": "^128.0.0",
+        "whatwg-url": "^14.0.0",
+        "node-fetch": "^2.7.0"
     },
     "author": "",
     "license": "MIT"
