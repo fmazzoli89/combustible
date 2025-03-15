@@ -1,10 +1,26 @@
 // Global state
 let currentUser = '';
 
+// Format date to DD/M/YYYY, HH:mm in GMT-3
+function formatDateGMT3(date) {
+    // Convert to GMT-3
+    const gmt3Date = new Date(date.getTime() - (3 * 60 * 60 * 1000));
+    
+    const day = gmt3Date.getDate();
+    const month = gmt3Date.getMonth() + 1;
+    const year = gmt3Date.getFullYear();
+    const hours = gmt3Date.getHours().toString().padStart(2, '0');
+    const minutes = gmt3Date.getMinutes().toString().padStart(2, '0');
+    
+    return `${day}/${month}/${year}, ${hours}:${minutes}`;
+}
+
 // Initialize date/time fields with current date/time
 function initializeDateTimeFields() {
     const now = new Date();
-    const dateString = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
+    // Add 3 hours to get to GMT-3
+    const gmt3Date = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+    const dateString = gmt3Date.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
     document.getElementById('carga-fecha').value = dateString;
     document.getElementById('descarga-fecha').value = dateString;
 }
@@ -183,7 +199,7 @@ async function handleCarga(event) {
     
     try {
         const values = [
-            new Date(data.fecha).toLocaleString(),
+            formatDateGMT3(new Date(data.fecha)),
             data.tipo,
             data.estacion,
             data.litros,
@@ -223,7 +239,7 @@ async function handleDescarga(event) {
     
     try {
         const values = [
-            new Date(data.fecha).toLocaleString(),
+            formatDateGMT3(new Date(data.fecha)),
             data.tipo,
             data.obra,
             data.maquina,
@@ -387,10 +403,13 @@ async function showHistorial() {
             const item = document.createElement('div');
             item.className = 'history-item';
             
+            // Format the date from the entry
+            const date = formatDateGMT3(new Date(entry[0]));
+            
             if (sheetName === 'Cargas') {
-                item.textContent = `${entry[0]} - ${entry[2]} - ${entry[3]} litros`;
+                item.textContent = `${date} - ${entry[2]} - ${entry[3]} litros`;
             } else {
-                item.textContent = `${entry[0]} - ${entry[2]} - ${entry[3]} - ${entry[5]} litros`;
+                item.textContent = `${date} - ${entry[2]} - ${entry[3]} - ${entry[5]} litros`;
             }
             
             historialList.appendChild(item);
