@@ -2,7 +2,7 @@
 async function testSheetsAccess() {
     try {
         // Use our serverless function to test access
-        const response = await fetch('/api/sheets-test', {
+        const response = await fetch('https://combustible-tramec.vercel.app/api/sheets-test', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

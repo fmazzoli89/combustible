@@ -46,7 +46,7 @@ function setupTabs() {
 async function appendToSheet(sheetName, values) {
     try {
         // Use our serverless function instead of directly calling Google Sheets API
-        const response = await fetch('/api/sheets', {
+        const response = await fetch('https://combustible-tramec.vercel.app/api/sheets', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

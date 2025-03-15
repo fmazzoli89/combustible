@@ -2,6 +2,8 @@
 const fetch = require('node-fetch');
 
 module.exports = async (req, res) => {
+  console.log('API request received:', req.method);
+  
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -24,10 +26,13 @@ module.exports = async (req, res) => {
 
   try {
     const { sheetName, values } = req.body;
+    console.log('Request body:', { sheetName, values });
     
     // Configuration
     const SHEET_ID = process.env.SHEET_ID || '1hUZfOdDwG44M5k2-dI0NXpH8248LAcwlBde9emw2GP8';
     const API_KEY = process.env.API_KEY || 'AIzaSyA9DajDlIlCLytHNPCkrCCfVUx5yQRohxI';
+    
+    console.log('Using configuration:', { SHEET_ID, API_KEY: API_KEY.substring(0, 5) + '...' });
     
     // Build the API endpoint
     const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${sheetName}!A:Z:append`;
@@ -36,6 +41,8 @@ module.exports = async (req, res) => {
       key: API_KEY,
       insertDataOption: 'INSERT_ROWS'
     });
+
+    console.log('Making request to:', `${endpoint}?${params}`);
 
     // Make the request to Google Sheets API
     const response = await fetch(`${endpoint}?${params}`, {
@@ -52,6 +59,7 @@ module.exports = async (req, res) => {
 
     // Get the response
     const data = await response.json();
+    console.log('Google Sheets API response:', data);
     
     // Return the response
     return res.status(response.status).json(data);
