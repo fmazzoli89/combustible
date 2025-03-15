@@ -57,10 +57,13 @@ module.exports = async (req, res) => {
             return;
         }
 
-        // Append values to the sheet
+        // Determine which sheet to use based on the operation type (values[1] contains 'CARGA' or 'DESCARGA')
+        const sheetName = values[1] === 'DESCARGA' ? 'Descargas' : 'Cargas';
+        
+        // Append values to the appropriate sheet
         const response = await sheets.spreadsheets.values.append({
             spreadsheetId: process.env.SHEET_ID,
-            range: 'A:K', // Simplified range format
+            range: `${sheetName}!A:K`, // Use the appropriate sheet name
             valueInputOption: 'USER_ENTERED',
             insertDataOption: 'INSERT_ROWS',
             resource: {
