@@ -542,26 +542,32 @@ function setupValidation() {
 
 // Show history modal
 async function showHistorial() {
+    showLoading();
     try {
         const currentTab = document.querySelector('.tab-btn.active').textContent;
         const sheetName = currentTab === 'CARGA' ? 'Cargas' : 'Descargas';
         
-        const response = await fetch(BASE_API_ENDPOINT, {
+        const response = await fetch(BASE_API_ENDPOINT, {  // Remove /history since it's causing issues
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 username: currentUser,
-                sheetName: sheetName
+                sheetName: sheetName,
+                action: 'getHistory'  // Add action parameter to differentiate from other POST requests
             })
         });
 
         if (!response.ok) {
-            throw new Error('Failed to fetch history');
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
 
         const data = await response.json();
+        if (!data || !data.history || !Array.isArray(data.history)) {
+            throw new Error('No hay datos disponibles en el historial');
+        }
+
         const historialList = document.getElementById('historial-list');
         const historialTitle = document.getElementById('historial-title');
         
@@ -592,41 +598,57 @@ async function showHistorial() {
         }
         historialList.appendChild(headerItem);
         
-        // Add entries
-        data.history.forEach(entry => {
-            const item = document.createElement('div');
-            item.className = 'history-item';
-            
-            if (sheetName === 'Cargas') {
-                item.innerHTML = `
-                    <span>${entry[0]}</span>
-                    <span>${entry[2]}</span>
-                    <span>${entry[3]} L</span>
-                    <span>${entry[4]}</span>
-                `;
-            } else {
-                item.innerHTML = `
-                    <span>${entry[0]}</span>
-                    <span>${entry[2]}</span>
-                    <span>${entry[3]}</span>
-                    <span>${entry[5]} L</span>
-                `;
-            }
-            
-            historialList.appendChild(item);
-        });
+        // Add entries - filter out any rows that don't have the minimum required data
+        data.history
+            .filter(entry => Array.isArray(entry) && entry.length >= (sheetName === 'Cargas' ? 5 : 6))
+            .forEach(entry => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                
+                // Safely access array elements with null coalescing
+                if (sheetName === 'Cargas') {
+                    item.innerHTML = `
+                        <span>${entry[0] ?? ''}</span>
+                        <span>${entry[2] ?? ''}</span>
+                        <span>${entry[3] ? `${entry[3]} L` : ''}</span>
+                        <span>${entry[4] ?? ''}</span>
+                    `;
+                } else {
+                    item.innerHTML = `
+                        <span>${entry[0] ?? ''}</span>
+                        <span>${entry[2] ?? ''}</span>
+                        <span>${entry[3] ?? ''}</span>
+                        <span>${entry[5] ? `${entry[5]} L` : ''}</span>
+                    `;
+                }
+                
+                historialList.appendChild(item);
+            });
+
+        if (historialList.children.length <= 1) { // Only header row
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'history-item';
+            emptyMessage.innerHTML = '<span colspan="4" style="text-align: center">No hay registros para mostrar</span>';
+            historialList.appendChild(emptyMessage);
+        }
         
         // Show modal
         document.getElementById('historial-modal').style.display = 'block';
     } catch (error) {
         console.error('Error fetching history:', error);
-        alert('Error al cargar el historial');
+        const errorMessage = error.message.includes('Error 500') 
+            ? 'Error al cargar el historial. Por favor intente nuevamente más tarde.'
+            : `Error al cargar el historial: ${error.message}`;
+        alert(errorMessage);
+    } finally {
+        hideLoading();
     }
 }
 
 // Close history modal
 function closeHistorial() {
     document.getElementById('historial-modal').style.display = 'none';
+    document.getElementById('historial-list').innerHTML = ''; // Clear the list when closing
 }
 
 // Add keyboard support for closing modal
