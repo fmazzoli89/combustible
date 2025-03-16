@@ -575,23 +575,50 @@ async function showHistorial() {
         const currentTab = document.querySelector('.tab-btn.active').textContent;
         const sheetName = currentTab === 'CARGA' ? 'Cargas' : 'Descargas';
         
-        const response = await fetch(BASE_API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username: currentUser,
-                sheetName: sheetName,
-                action: 'getHistory'
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        // Add error handling for the fetch request
+        let response;
+        try {
+            response = await fetch(`${BASE_API_ENDPOINT}/sheets`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: currentUser,
+                    sheetName: sheetName,
+                    action: 'getHistory'
+                })
+            });
+        } catch (fetchError) {
+            console.error('Network error:', fetchError);
+            throw new Error('Error de conexión. Por favor verifique su conexión a internet.');
         }
 
-        const data = await response.json();
+        // Handle non-200 responses
+        if (!response.ok) {
+            let errorMessage = `Error del servidor (${response.status})`;
+            try {
+                const errorData = await response.json();
+                if (errorData && errorData.error) {
+                    errorMessage = errorData.error;
+                }
+            } catch (e) {
+                // If we can't parse the error response, use the status text
+                errorMessage = `Error del servidor: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
+        }
+
+        // Parse response data with error handling
+        let data;
+        try {
+            data = await response.json();
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            throw new Error('Error al procesar la respuesta del servidor');
+        }
+
+        // Validate response data
         if (!data || !data.history || !Array.isArray(data.history)) {
             throw new Error('No hay datos disponibles en el historial');
         }
@@ -627,9 +654,19 @@ async function showHistorial() {
         historialList.appendChild(headerItem);
         
         // Add entries - filter out any rows that don't have the minimum required data
-        data.history
-            .filter(entry => Array.isArray(entry) && entry.length >= (sheetName === 'Cargas' ? 5 : 6))
-            .forEach(entry => {
+        const validEntries = data.history.filter(entry => 
+            Array.isArray(entry) && 
+            entry.length >= (sheetName === 'Cargas' ? 5 : 6) &&
+            entry.some(value => value !== null && value !== undefined && value !== '')
+        );
+
+        if (validEntries.length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'history-item';
+            emptyMessage.innerHTML = '<span colspan="4" style="text-align: center">No hay registros para mostrar</span>';
+            historialList.appendChild(emptyMessage);
+        } else {
+            validEntries.forEach(entry => {
                 const item = document.createElement('div');
                 item.className = 'history-item';
                 
@@ -652,12 +689,6 @@ async function showHistorial() {
                 
                 historialList.appendChild(item);
             });
-
-        if (historialList.children.length <= 1) { // Only header row
-            const emptyMessage = document.createElement('div');
-            emptyMessage.className = 'history-item';
-            emptyMessage.innerHTML = '<span colspan="4" style="text-align: center">No hay registros para mostrar</span>';
-            historialList.appendChild(emptyMessage);
         }
         
         // Show modal
