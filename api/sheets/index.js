@@ -291,9 +291,9 @@ module.exports = async (req, res) => {
                     values
                 });
                 
-                const response = await sheets.spreadsheets.values.append({
+                const response = await sheets.spreadsheets.values.update({
                     spreadsheetId: process.env.SHEET_ID,
-                    range: `${sheetName}!A:K`,
+                    range: `${sheetName}!A2`,
                     valueInputOption: 'USER_ENTERED',
                     insertDataOption: 'INSERT_ROWS',
                     resource: {
@@ -301,14 +301,14 @@ module.exports = async (req, res) => {
                     }
                 });
 
-                console.log('Successfully appended values:', response.data);
+                console.log('Successfully inserted values:', response.data);
 
                 res.status(200).json({
                     success: true,
-                    updatedRange: response.data.updates.updatedRange
+                    updatedRange: response.data.updatedRange
                 });
             } catch (error) {
-                console.error('Error appending to sheet:', {
+                console.error('Error inserting to sheet:', {
                     error: error.message,
                     stack: error.stack,
                     response: error.response?.data,
@@ -316,7 +316,7 @@ module.exports = async (req, res) => {
                     values
                 });
                 res.status(500).json({
-                    error: 'Failed to append to sheet',
+                    error: 'Failed to insert to sheet',
                     details: error.message,
                     response: error.response?.data,
                     sheetName,
