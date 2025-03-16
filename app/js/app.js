@@ -560,6 +560,9 @@ function setupValidation() {
 // Show history modal
 async function showHistorial() {
     try {
+        const currentTab = document.querySelector('.tab-btn.active').textContent;
+        const sheetName = currentTab === 'CARGA' ? 'Cargas' : 'Descargas';
+        
         const response = await fetch(BASE_API_ENDPOINT, {
             method: 'POST',
             headers: {
@@ -567,7 +570,7 @@ async function showHistorial() {
             },
             body: JSON.stringify({
                 username: currentUser,
-                sheetName: 'all' // This is just a placeholder, the server ignores it now
+                sheetName: sheetName
             })
         });
 
@@ -579,8 +582,8 @@ async function showHistorial() {
         const historialList = document.getElementById('historial-list');
         const historialTitle = document.getElementById('historial-title');
         
-        // Update title to show it's a combined history
-        historialTitle.textContent = 'Historial Reciente';
+        // Update title
+        historialTitle.textContent = `Historial de ${sheetName}`;
         
         // Clear previous entries
         historialList.innerHTML = '';
@@ -588,13 +591,22 @@ async function showHistorial() {
         // Add header row
         const headerItem = document.createElement('div');
         headerItem.className = 'history-item';
-        headerItem.innerHTML = `
-            <span>Fecha</span>
-            <span>Tipo</span>
-            <span>Ubicación</span>
-            <span>Máq/Est</span>
-            <span>Litros</span>
-        `;
+        
+        if (sheetName === 'Cargas') {
+            headerItem.innerHTML = `
+                <span>Fecha</span>
+                <span>Estación</span>
+                <span>Litros</span>
+                <span>Usuario</span>
+            `;
+        } else {
+            headerItem.innerHTML = `
+                <span>Fecha</span>
+                <span>Obra</span>
+                <span>Máquina</span>
+                <span>Litros</span>
+            `;
+        }
         historialList.appendChild(headerItem);
         
         // Add entries
@@ -602,16 +614,21 @@ async function showHistorial() {
             const item = document.createElement('div');
             item.className = 'history-item';
             
-            const sheetType = entry[entry.length - 1]; // Last element is the sheet name we added
-            const isDescarga = sheetType === 'Descargas';
-            
-            item.innerHTML = `
-                <span>${entry[0]}</span>
-                <span>${isDescarga ? 'DESCARGA' : 'CARGA'}</span>
-                <span>${entry[2]}</span>
-                <span>${isDescarga ? entry[3] : ''}</span>
-                <span>${isDescarga ? entry[5] : entry[3]} L</span>
-            `;
+            if (sheetName === 'Cargas') {
+                item.innerHTML = `
+                    <span>${entry[0]}</span>
+                    <span>${entry[2]}</span>
+                    <span>${entry[3]} L</span>
+                    <span>${entry[4]}</span>
+                `;
+            } else {
+                item.innerHTML = `
+                    <span>${entry[0]}</span>
+                    <span>${entry[2]}</span>
+                    <span>${entry[3]}</span>
+                    <span>${entry[5]} L</span>
+                `;
+            }
             
             historialList.appendChild(item);
         });
