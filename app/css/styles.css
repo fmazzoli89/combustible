@@ -208,10 +208,10 @@ button:hover {
 
 .history-item {
     display: grid;
-    grid-template-columns: 110px 180px 100px 70px;
+    grid-template-columns: 95px minmax(140px, 1fr) 90px 60px;
     padding: 8px 4px;
     border-bottom: 1px solid #eee;
-    align-items: center;
+    align-items: start;
     min-height: 45px;
 }
 
@@ -227,6 +227,7 @@ button:hover {
     white-space: normal;
     font-size: 12px;
     word-break: break-word;
+    hyphens: auto;
 }
 
 .history-item:first-child {
@@ -234,8 +235,13 @@ button:hover {
     font-size: 13px;
     background-color: white;
     border-bottom: 2px solid #ddd;
+    align-items: center;
 }
 
 .history-item:first-child span {
     font-size: 13px;
+}
+
+.history-item span:last-child {
+    text-align: right;
 } 
