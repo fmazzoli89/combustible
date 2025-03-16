@@ -591,8 +591,6 @@ async function showHistorial() {
         // Add header row
         const headerItem = document.createElement('div');
         headerItem.className = 'history-item';
-        headerItem.style.fontWeight = 'bold';
-        headerItem.style.borderBottom = '2px solid #ddd';
         
         if (sheetName === 'Cargas') {
             headerItem.innerHTML = `
@@ -603,10 +601,10 @@ async function showHistorial() {
             `;
         } else {
             headerItem.innerHTML = `
+                <span>Fecha</span>
                 <span>Obra</span>
                 <span>Máquina</span>
                 <span>Litros</span>
-                <span>Operario</span>
             `;
         }
         historialList.appendChild(headerItem);
@@ -625,10 +623,10 @@ async function showHistorial() {
                 `;
             } else {
                 item.innerHTML = `
+                    <span>${entry[0]}</span>
                     <span>${entry[2]}</span>
                     <span>${entry[3]}</span>
                     <span>${entry[5]} L</span>
-                    <span>${entry[4]}</span>
                 `;
             }
             
