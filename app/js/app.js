@@ -573,18 +573,18 @@ async function showHistorial() {
     showLoading();
     try {
         const currentTab = document.querySelector('.tab-btn.active').textContent;
-        const sheetName = currentTab === 'CARGA' ? 'Cargas' : 'Descargas';
+        const tipo = currentTab === 'CARGA' ? 'CARGA' : 'DESCARGA';
         
-        // Use the same base endpoint that works for other API calls
         const response = await fetch(BASE_API_ENDPOINT, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                action: 'getHistory',  // Clearly identify what we want
+                action: 'getLastEntries',
                 username: currentUser,
-                sheetName: sheetName
+                tipo: tipo,
+                limit: 5
             })
         });
 
@@ -594,30 +594,24 @@ async function showHistorial() {
 
         const data = await response.json();
         
-        // Simple validation for data
-        if (!data || !Array.isArray(data)) {
-            throw new Error('No hay datos disponibles');
-        }
-
         const historialList = document.getElementById('historial-list');
         const historialTitle = document.getElementById('historial-title');
         
         // Update title
-        historialTitle.textContent = `Historial de ${sheetName}`;
+        historialTitle.textContent = `Últimas ${tipo === 'CARGA' ? 'Cargas' : 'Descargas'}`;
         
         // Clear previous entries
         historialList.innerHTML = '';
         
         // Add header row
         const headerItem = document.createElement('div');
-        headerItem.className = 'history-item';
+        headerItem.className = 'history-item header';
         
-        if (sheetName === 'Cargas') {
+        if (tipo === 'CARGA') {
             headerItem.innerHTML = `
                 <span>Fecha</span>
                 <span>Estación</span>
                 <span>Litros</span>
-                <span>Usuario</span>
             `;
         } else {
             headerItem.innerHTML = `
@@ -629,34 +623,29 @@ async function showHistorial() {
         }
         historialList.appendChild(headerItem);
 
-        // Simple display of data - use a different property name to match what the server returns
-        if (data.length === 0) {
+        // Display entries or show empty message
+        if (!Array.isArray(data) || data.length === 0) {
             const emptyMessage = document.createElement('div');
             emptyMessage.className = 'history-item';
-            emptyMessage.innerHTML = '<span colspan="4" style="text-align: center">No hay registros para mostrar</span>';
+            emptyMessage.innerHTML = '<span style="text-align: center; width: 100%">No hay registros para mostrar</span>';
             historialList.appendChild(emptyMessage);
         } else {
-            // Display each item
             data.forEach(entry => {
-                if (!entry || !Array.isArray(entry)) return;
-                
                 const item = document.createElement('div');
                 item.className = 'history-item';
                 
-                // Format the date and safely access array elements
-                if (sheetName === 'Cargas') {
+                if (tipo === 'CARGA') {
                     item.innerHTML = `
-                        <span>${formatDisplayDate(entry[0])}</span>
-                        <span>${entry[2] || ''}</span>
-                        <span>${entry[3] ? `${entry[3]} L` : ''}</span>
-                        <span>${entry[4] || ''}</span>
+                        <span>${entry.fecha || ''}</span>
+                        <span>${entry.estacion || ''}</span>
+                        <span>${entry.litros ? `${entry.litros} L` : ''}</span>
                     `;
                 } else {
                     item.innerHTML = `
-                        <span>${formatDisplayDate(entry[0])}</span>
-                        <span>${entry[2] || ''}</span>
-                        <span>${entry[3] || ''}</span>
-                        <span>${entry[5] ? `${entry[5]} L` : ''}</span>
+                        <span>${entry.fecha || ''}</span>
+                        <span>${entry.obra || ''}</span>
+                        <span>${entry.maquina || ''}</span>
+                        <span>${entry.litros ? `${entry.litros} L` : ''}</span>
                     `;
                 }
                 
