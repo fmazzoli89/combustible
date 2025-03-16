@@ -75,7 +75,10 @@ async function appendToSheet(values) {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ values })
+            body: JSON.stringify({
+                values,
+                insertDataOption: 'INSERT_ROWS'
+            })
         });
 
         console.log('Response status:', response.status); // Debug log
