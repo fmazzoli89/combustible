@@ -291,11 +291,34 @@ module.exports = async (req, res) => {
                     values
                 });
                 
-                const response = await sheets.spreadsheets.values.append({
+                // Get the sheet ID first
+                const spreadsheet = await sheets.spreadsheets.get({
+                    spreadsheetId: process.env.SHEET_ID
+                });
+                const sheetId = spreadsheet.data.sheets.find(s => s.properties.title === sheetName).properties.sheetId;
+                
+                // First, insert a new row at position 2
+                await sheets.spreadsheets.batchUpdate({
+                    spreadsheetId: process.env.SHEET_ID,
+                    resource: {
+                        requests: [{
+                            insertDimension: {
+                                range: {
+                                    sheetId: sheetId,
+                                    dimension: 'ROWS',
+                                    startIndex: 1,  // 0-based index, so 1 means row 2
+                                    endIndex: 2
+                                }
+                            }
+                        }]
+                    }
+                });
+
+                // Then update the newly inserted row with values
+                const response = await sheets.spreadsheets.values.update({
                     spreadsheetId: process.env.SHEET_ID,
                     range: `${sheetName}!A2`,
                     valueInputOption: 'USER_ENTERED',
-                    insertDataOption: 'INSERT_ROWS',
                     resource: {
                         values: [values]
                     }
