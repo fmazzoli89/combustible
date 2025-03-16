@@ -201,18 +201,18 @@ button:hover {
 }
 
 .history-list {
-    font-size: 14px;
+    font-size: 12px;
     width: 100%;
     border-collapse: collapse;
 }
 
 .history-item {
     display: grid;
-    grid-template-columns: 120px 140px 100px auto;
-    padding: 12px 4px;
+    grid-template-columns: 110px 160px 90px 100px;
+    padding: 8px 4px;
     border-bottom: 1px solid #eee;
     align-items: center;
-    min-height: 50px;
+    min-height: 45px;
 }
 
 .history-item:nth-child(even) {
@@ -223,14 +223,17 @@ button:hover {
     padding: 0 4px;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.4;
+    line-height: 1.3;
     white-space: normal;
+    font-size: 12px;
 }
 
-.history-item span:first-child {
-    padding-left: 8px;
+.history-item:first-child {
+    font-weight: bold;
+    font-size: 13px;
+    background-color: white;
 }
 
-.history-item span:last-child {
-    padding-right: 8px;
+.history-item:first-child span {
+    font-size: 13px;
 } 
