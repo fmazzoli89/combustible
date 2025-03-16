@@ -134,23 +134,48 @@ async function ensureSheetExists(spreadsheetId, sheetName) {
 }
 
 // Function to get user history
-async function getUserHistory(username, sheetName) {
+async function getUserHistory(username) {
     try {
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: process.env.SHEET_ID,
-            range: `${sheetName}!A:K`,
-            majorDimension: 'ROWS'
-        });
+        // Fetch data from both sheets
+        const [cargasResponse, descargasResponse] = await Promise.all([
+            sheets.spreadsheets.values.get({
+                spreadsheetId: process.env.SHEET_ID,
+                range: 'Cargas!A:K',
+                majorDimension: 'ROWS'
+            }),
+            sheets.spreadsheets.values.get({
+                spreadsheetId: process.env.SHEET_ID,
+                range: 'Descargas!A:K',
+                majorDimension: 'ROWS'
+            })
+        ]);
 
-        const values = response.data.values || [];
+        // Extract values from both sheets
+        const cargasValues = cargasResponse.data.values || [];
+        const descargasValues = descargasResponse.data.values || [];
         
-        // Filter by username and get last 5 entries
-        const userHistory = values
-            .filter(row => row[row.length - 1] === username) // Username is in the last column
-            .reverse() // Most recent first
-            .slice(0, 5); // Get only last 5 entries
-
-        return userHistory;
+        // Filter by username for each sheet
+        const cargasHistory = cargasValues
+            .filter(row => row.length > 0 && row[row.length - 1] === username)
+            .map(row => [...row, 'Cargas']); // Add sheet name as the last item
+            
+        const descargasHistory = descargasValues
+            .filter(row => row.length > 0 && row[row.length - 1] === username)
+            .map(row => [...row, 'Descargas']); // Add sheet name as the last item
+        
+        // Combine both histories
+        const combinedHistory = [...cargasHistory, ...descargasHistory];
+        
+        // Sort by date in reverse order (most recent first)
+        // We're assuming the first column (index 0) contains the date
+        combinedHistory.sort((a, b) => {
+            const dateA = new Date(a[0]);
+            const dateB = new Date(b[0]);
+            return dateB - dateA; // Descending order
+        });
+        
+        // Return the most recent 5 entries
+        return combinedHistory.slice(0, 5);
     } catch (error) {
         console.error('Error fetching user history:', error);
         throw error;
@@ -205,8 +230,8 @@ module.exports = async (req, res) => {
             const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
             
             // Check if this is a history request
-            if (body.username && body.sheetName) {
-                const history = await getUserHistory(body.username, body.sheetName);
+            if (body.username && ('sheetName' in body)) {
+                const history = await getUserHistory(body.username);
                 res.status(200).json({ history });
                 return;
             }
