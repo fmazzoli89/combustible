@@ -144,13 +144,25 @@ async function getUserHistory(username, sheetName) {
 
         const values = response.data.values || [];
         
-        // Filter by username and get last 5 entries
-        const userHistory = values
+        // Filter by username and parse dates for sorting
+        const userEntries = values
             .filter(row => row[row.length - 1] === username) // Username is in the last column
-            .reverse() // Most recent first
-            .slice(0, 5); // Get only last 5 entries
+            .map(row => {
+                // Parse date from format "DD/MM/YYYY, HH:mm"
+                const [datePart, timePart] = row[0].split(', ');
+                const [day, month, year] = datePart.split('/');
+                const [hours, minutes] = timePart.split(':');
+                const date = new Date(year, month - 1, day, hours, minutes);
+                return {
+                    date,
+                    row
+                };
+            })
+            .sort((a, b) => b.date - a.date) // Sort by date, newest first
+            .slice(0, 5) // Get only last 5 entries
+            .map(entry => entry.row); // Convert back to row format
 
-        return userHistory;
+        return userEntries;
     } catch (error) {
         console.error('Error fetching user history:', error);
         throw error;
