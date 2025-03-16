@@ -540,6 +540,34 @@ function setupValidation() {
     });
 }
 
+// Format date for display
+function formatDisplayDate(dateStr) {
+    if (!dateStr) return '';
+    
+    try {
+        // Try to parse the date string
+        const date = new Date(dateStr);
+        
+        // Check if we got a valid date
+        if (isNaN(date.getTime())) {
+            // If invalid date, return the original string
+            return dateStr;
+        }
+        
+        // Format the date
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        
+        return `${day}/${month}/${year} ${hours}:${minutes}`;
+    } catch (e) {
+        // If any error occurs, return the original string
+        return dateStr;
+    }
+}
+
 // Show history modal
 async function showHistorial() {
     showLoading();
@@ -547,7 +575,7 @@ async function showHistorial() {
         const currentTab = document.querySelector('.tab-btn.active').textContent;
         const sheetName = currentTab === 'CARGA' ? 'Cargas' : 'Descargas';
         
-        const response = await fetch(BASE_API_ENDPOINT, {  // Remove /history since it's causing issues
+        const response = await fetch(BASE_API_ENDPOINT, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -555,7 +583,7 @@ async function showHistorial() {
             body: JSON.stringify({
                 username: currentUser,
                 sheetName: sheetName,
-                action: 'getHistory'  // Add action parameter to differentiate from other POST requests
+                action: 'getHistory'
             })
         });
 
@@ -605,17 +633,17 @@ async function showHistorial() {
                 const item = document.createElement('div');
                 item.className = 'history-item';
                 
-                // Safely access array elements with null coalescing
+                // Format the date and safely access array elements
                 if (sheetName === 'Cargas') {
                     item.innerHTML = `
-                        <span>${entry[0] ?? ''}</span>
+                        <span>${formatDisplayDate(entry[0])}</span>
                         <span>${entry[2] ?? ''}</span>
                         <span>${entry[3] ? `${entry[3]} L` : ''}</span>
                         <span>${entry[4] ?? ''}</span>
                     `;
                 } else {
                     item.innerHTML = `
-                        <span>${entry[0] ?? ''}</span>
+                        <span>${formatDisplayDate(entry[0])}</span>
                         <span>${entry[2] ?? ''}</span>
                         <span>${entry[3] ?? ''}</span>
                         <span>${entry[5] ? `${entry[5]} L` : ''}</span>
