@@ -385,12 +385,13 @@ async function handleCarga(event) {
     
     try {
         const now = new Date();
-        const day = now.getDate();
-        const month = now.getMonth() + 1;
+        // Format date as YYYY-MM-DD HH:mm
         const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const day = now.getDate().toString().padStart(2, '0');
         const hours = now.getHours().toString().padStart(2, '0');
         const minutes = now.getMinutes().toString().padStart(2, '0');
-        const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
+        const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
         
         const data = {
             estacion: document.getElementById('carga-estacion').value,
@@ -456,12 +457,13 @@ async function handleDescarga(event) {
         const location = await getLocation();
         
         const now = new Date();
-        const day = now.getDate();
-        const month = now.getMonth() + 1;
+        // Format date as YYYY-MM-DD HH:mm
         const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const day = now.getDate().toString().padStart(2, '0');
         const hours = now.getHours().toString().padStart(2, '0');
         const minutes = now.getMinutes().toString().padStart(2, '0');
-        const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
+        const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
         
         const data = {
             obra: document.getElementById('descarga-obra').value,
