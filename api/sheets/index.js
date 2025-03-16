@@ -291,7 +291,7 @@ module.exports = async (req, res) => {
                     values
                 });
                 
-                const response = await sheets.spreadsheets.values.update({
+                const response = await sheets.spreadsheets.values.append({
                     spreadsheetId: process.env.SHEET_ID,
                     range: `${sheetName}!A2`,
                     valueInputOption: 'USER_ENTERED',
