@@ -108,7 +108,7 @@
                     <input type="number" id="descarga-fluidina" value="0" step="0.1">
                 </div>
 
-                <button type="button" class="btn-link" onclick="toggleExtraFields()">Más campos</button>
+                <a href="#" class="toggle-fields" onclick="toggleExtraFields(event)">más campos</a>
 
                 <div id="extra-fields" style="display: none;">
                     <div class="form-group">
@@ -139,6 +139,9 @@
             </div>
         </div>
     </div>
+
+    <div id="loading-spinner" class="spinner"></div>
+    <div id="success-message" class="success-message"></div>
 
     <script src="js/config.js"></script>
     <script src="js/app.js"></script>

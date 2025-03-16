@@ -260,10 +260,16 @@ function logout() {
     }
 }
 
-function toggleExtraFields() {
+function toggleExtraFields(event) {
+    if (event) {
+        event.preventDefault();
+    }
     const extraFields = document.getElementById('extra-fields');
-    if (extraFields) {
-        extraFields.style.display = extraFields.style.display === 'none' ? 'block' : 'none';
+    const toggleLink = document.querySelector('.toggle-fields');
+    if (extraFields && toggleLink) {
+        const isVisible = extraFields.style.display !== 'none';
+        extraFields.style.display = isVisible ? 'none' : 'block';
+        toggleLink.textContent = isVisible ? 'más campos' : 'menos campos';
     }
 }
 
@@ -339,26 +345,60 @@ function showTab(tabName) {
     }
 }
 
+// Show/hide loading spinner
+function showLoading() {
+    document.getElementById('loading-spinner').classList.add('active');
+}
+
+function hideLoading() {
+    document.getElementById('loading-spinner').classList.remove('active');
+}
+
+// Show success message with auto-dismiss
+function showSuccess(message) {
+    const successElement = document.getElementById('success-message');
+    successElement.textContent = message;
+    successElement.classList.add('active');
+
+    // Auto-dismiss after 2 seconds
+    const dismissTimeout = setTimeout(() => {
+        hideSuccess();
+    }, 2000);
+
+    // Dismiss on tap
+    const tapHandler = () => {
+        clearTimeout(dismissTimeout);
+        hideSuccess();
+        document.removeEventListener('click', tapHandler);
+    };
+    document.addEventListener('click', tapHandler);
+}
+
+function hideSuccess() {
+    document.getElementById('success-message').classList.remove('active');
+}
+
 // Handle carga form submission
 async function handleCarga(event) {
     event.preventDefault();
-    
-    const now = new Date();
-    const day = now.getDate();
-    const month = now.getMonth() + 1;
-    const year = now.getFullYear();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
-    
-    const data = {
-        estacion: document.getElementById('carga-estacion').value,
-        litros: document.getElementById('carga-litros').value,
-        usuario: currentUser,
-        tipo: 'CARGA'
-    };
+    showLoading();
     
     try {
+        const now = new Date();
+        const day = now.getDate();
+        const month = now.getMonth() + 1;
+        const year = now.getFullYear();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const formattedDate = `${day}/${month}/${year}, ${hours}:${minutes}`;
+        
+        const data = {
+            estacion: document.getElementById('carga-estacion').value,
+            litros: document.getElementById('carga-litros').value,
+            usuario: currentUser,
+            tipo: 'CARGA'
+        };
+        
         const values = [
             formattedDate,
             data.tipo,
@@ -368,14 +408,15 @@ async function handleCarga(event) {
         ];
         
         await appendToSheet(values);
-        showCustomAlert('Carga Exitosa', () => {
-            document.getElementById('carga-form').reset();
-            // Clear number fields explicitly
-            document.getElementById('carga-litros').value = '';
-        });
+        document.getElementById('carga-form').reset();
+        // Clear number fields explicitly
+        document.getElementById('carga-litros').value = '';
+        showSuccess('Carga Exitosa');
     } catch (error) {
         alert('Error al registrar la carga: ' + error.message);
         console.error('Error:', error);
+    } finally {
+        hideLoading();
     }
 }
 
@@ -408,6 +449,7 @@ async function getLocation() {
 // Handle descarga form submission
 async function handleDescarga(event) {
     event.preventDefault();
+    showLoading();
     
     try {
         // Get GPS location first
@@ -448,107 +490,33 @@ async function handleDescarga(event) {
             data.aceiteHidraulico,
             data.fluidina,
             data.usuario,
-            data.ubicacion, // Add location to the values array
-            '', '', '', '', '', data.desde // Empty columns until R, then add desde
+            data.ubicacion,
+            '', '', '', '', '', data.desde
         ];
         
         await appendToSheet(values);
         const selectedObra = data.obra; // Store the selected obra before reset
-        showCustomAlert('Descarga Exitosa', () => {
-            document.getElementById('descarga-form').reset();
-            document.getElementById('descarga-obra').value = selectedObra; // Restore the obra value
-            // Clear number fields explicitly
-            document.getElementById('descarga-litros').value = '';
-            document.getElementById('descarga-horometro').value = '';
-            document.getElementById('descarga-aceite-motor').value = '';
-            document.getElementById('descarga-aceite-hidraulico').value = '';
-            document.getElementById('descarga-fluidina').value = '';
-            // Reset desde to default value
-            document.getElementById('descarga-desde').value = 'CAMION';
-            // Hide extra fields
-            document.getElementById('extra-fields').style.display = 'none';
-        });
+        
+        document.getElementById('descarga-form').reset();
+        document.getElementById('descarga-obra').value = selectedObra; // Restore the obra value
+        // Clear number fields explicitly
+        document.getElementById('descarga-litros').value = '';
+        document.getElementById('descarga-horometro').value = '';
+        document.getElementById('descarga-aceite-motor').value = '';
+        document.getElementById('descarga-aceite-hidraulico').value = '';
+        document.getElementById('descarga-fluidina').value = '';
+        // Reset desde to default value
+        document.getElementById('descarga-desde').value = 'CAMION';
+        // Hide extra fields
+        document.getElementById('extra-fields').style.display = 'none';
+        
+        showSuccess('Descarga Exitosa');
     } catch (error) {
         alert('Error al registrar la descarga: ' + error.message);
         console.error('Error:', error);
+    } finally {
+        hideLoading();
     }
-}
-
-// Custom alert function
-function showCustomAlert(message, onClose) {
-    // Create alert container
-    const alertContainer = document.createElement('div');
-    alertContainer.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        text-align: center;
-        z-index: 1000;
-    `;
-
-    // Add message
-    const messageElement = document.createElement('p');
-    messageElement.textContent = message;
-    messageElement.style.marginBottom = '20px';
-    alertContainer.appendChild(messageElement);
-
-    // Add overlay
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 999;
-    `;
-
-    // Function to clean up both elements
-    const cleanup = () => {
-        if (document.body.contains(overlay)) {
-            document.body.removeChild(overlay);
-        }
-        if (document.body.contains(alertContainer)) {
-            document.body.removeChild(alertContainer);
-        }
-        if (onClose) onClose();
-    };
-
-    // Add close button
-    const closeButton = document.createElement('button');
-    closeButton.textContent = 'Cerrar';
-    closeButton.style.cssText = `
-        padding: 8px 16px;
-        background: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    `;
-    closeButton.onclick = cleanup;
-    alertContainer.appendChild(closeButton);
-
-    // Add elements to DOM
-    document.body.appendChild(overlay);
-    document.body.appendChild(alertContainer);
-
-    // Remove both overlay and alert when clicking outside
-    overlay.onclick = cleanup;
-
-    // Add keyboard support for closing
-    const handleEscape = (event) => {
-        if (event.key === 'Escape') {
-            cleanup();
-            document.removeEventListener('keydown', handleEscape);
-        }
-    };
-    document.addEventListener('keydown', handleEscape);
 }
 
 // Input validation
