@@ -162,6 +162,7 @@ button:hover {
     max-height: 80vh;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
 }
 
 .modal-header {
@@ -207,8 +208,8 @@ button:hover {
 
 .history-item {
     display: grid;
-    grid-template-columns: 140px 120px 120px 80px auto;
-    padding: 12px 8px;
+    grid-template-columns: 120px 140px 100px auto;
+    padding: 12px 4px;
     border-bottom: 1px solid #eee;
     align-items: center;
     min-height: 50px;
@@ -219,8 +220,17 @@ button:hover {
 }
 
 .history-item span {
-    padding: 0 8px;
+    padding: 0 4px;
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.4;
+    white-space: normal;
+}
+
+.history-item span:first-child {
+    padding-left: 8px;
+}
+
+.history-item span:last-child {
+    padding-right: 8px;
 } 
