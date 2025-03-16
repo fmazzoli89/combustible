@@ -208,7 +208,7 @@ button:hover {
 
 .history-item {
     display: grid;
-    grid-template-columns: 110px 160px 90px 100px;
+    grid-template-columns: 200px 100px 80px 100px;
     padding: 8px 4px;
     border-bottom: 1px solid #eee;
     align-items: center;

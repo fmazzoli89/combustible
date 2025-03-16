@@ -600,11 +600,9 @@ async function showHistorial() {
                 <span>Estación</span>
                 <span>Litros</span>
                 <span>Usuario</span>
-                <span></span>
             `;
         } else {
             headerItem.innerHTML = `
-                <span>Fecha</span>
                 <span>Obra</span>
                 <span>Máquina</span>
                 <span>Litros</span>
@@ -624,11 +622,9 @@ async function showHistorial() {
                     <span>${entry[2]}</span>
                     <span>${entry[3]} L</span>
                     <span>${entry[4]}</span>
-                    <span></span>
                 `;
             } else {
                 item.innerHTML = `
-                    <span>${entry[0]}</span>
                     <span>${entry[2]}</span>
                     <span>${entry[3]}</span>
                     <span>${entry[5]} L</span>
