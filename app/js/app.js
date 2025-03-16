@@ -260,6 +260,13 @@ function logout() {
     }
 }
 
+function toggleExtraFields() {
+    const extraFields = document.getElementById('extra-fields');
+    if (extraFields) {
+        extraFields.style.display = extraFields.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
 // Start the application
 async function startApp() {
     try {
@@ -423,6 +430,7 @@ async function handleDescarga(event) {
             aceiteMotor: document.getElementById('descarga-aceite-motor').value,
             aceiteHidraulico: document.getElementById('descarga-aceite-hidraulico').value,
             fluidina: document.getElementById('descarga-fluidina').value,
+            desde: document.getElementById('descarga-desde').value,
             usuario: currentUser,
             tipo: 'DESCARGA',
             ubicacion: location
@@ -440,7 +448,8 @@ async function handleDescarga(event) {
             data.aceiteHidraulico,
             data.fluidina,
             data.usuario,
-            data.ubicacion // Add location to the values array
+            data.ubicacion, // Add location to the values array
+            '', '', '', '', '', data.desde // Empty columns until R, then add desde
         ];
         
         await appendToSheet(values);
@@ -454,6 +463,10 @@ async function handleDescarga(event) {
             document.getElementById('descarga-aceite-motor').value = '';
             document.getElementById('descarga-aceite-hidraulico').value = '';
             document.getElementById('descarga-fluidina').value = '';
+            // Reset desde to default value
+            document.getElementById('descarga-desde').value = 'CAMION';
+            // Hide extra fields
+            document.getElementById('extra-fields').style.display = 'none';
         });
     } catch (error) {
         alert('Error al registrar la descarga: ' + error.message);

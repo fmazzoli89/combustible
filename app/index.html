@@ -108,6 +108,19 @@
                     <input type="number" id="descarga-fluidina" value="0" step="0.1">
                 </div>
 
+                <button type="button" class="btn-link" onclick="toggleExtraFields()">Más campos</button>
+
+                <div id="extra-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="descarga-desde">Desde:</label>
+                        <select id="descarga-desde" required>
+                            <option value="CAMION">CAMION</option>
+                            <option value="INTERCAR">INTERCAR</option>
+                            <option value="DEFLORES">DEFLORES</option>
+                        </select>
+                    </div>
+                </div>
+
                 <button type="submit">DESCARGAR</button>
             </form>
         </div>
