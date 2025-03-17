@@ -581,10 +581,9 @@ async function showHistorial() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                action: 'getLastEntries',
+                action: 'getHistory',
                 username: currentUser,
-                tipo: tipo,
-                limit: 5
+                tipo: tipo
             })
         });
 
@@ -630,22 +629,31 @@ async function showHistorial() {
             emptyMessage.innerHTML = '<span style="text-align: center; width: 100%">No hay registros para mostrar</span>';
             historialList.appendChild(emptyMessage);
         } else {
-            data.forEach(entry => {
+            // Take only the last 5 entries
+            const lastEntries = data.slice(-5);
+            
+            lastEntries.forEach(entry => {
+                if (!Array.isArray(entry)) return;
+                
                 const item = document.createElement('div');
                 item.className = 'history-item';
                 
+                // entry[0] = Fecha (A)
+                // entry[2] = Estacion/Obra (C)
+                // entry[3] = Litros (D)
+                // For descargas, entry[3] = Maquina
                 if (tipo === 'CARGA') {
                     item.innerHTML = `
-                        <span>${entry.fecha || ''}</span>
-                        <span>${entry.estacion || ''}</span>
-                        <span>${entry.litros ? `${entry.litros} L` : ''}</span>
+                        <span>${entry[0] || ''}</span>
+                        <span>${entry[2] || ''}</span>
+                        <span>${entry[3] ? `${entry[3]} L` : ''}</span>
                     `;
                 } else {
                     item.innerHTML = `
-                        <span>${entry.fecha || ''}</span>
-                        <span>${entry.obra || ''}</span>
-                        <span>${entry.maquina || ''}</span>
-                        <span>${entry.litros ? `${entry.litros} L` : ''}</span>
+                        <span>${entry[0] || ''}</span>
+                        <span>${entry[2] || ''}</span>
+                        <span>${entry[3] || ''}</span>
+                        <span>${entry[5] ? `${entry[5]} L` : ''}</span>
                     `;
                 }
                 
