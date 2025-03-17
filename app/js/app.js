@@ -581,10 +581,8 @@ async function showHistorial() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                action: 'getHistory',
-                username: currentUser,
-                tipo: tipo,
-                sheetName: tipo + 'S' // Server expects CARGAS or DESCARGAS
+                action: 'getLastFive',
+                sheetName: tipo + 'S' // CARGAS or DESCARGAS
             })
         });
 
@@ -630,19 +628,12 @@ async function showHistorial() {
             emptyMessage.innerHTML = '<span style="text-align: center; width: 100%">No hay registros para mostrar</span>';
             historialList.appendChild(emptyMessage);
         } else {
-            // Take only the last 5 entries
-            const lastEntries = data.slice(-5);
-            
-            lastEntries.forEach(entry => {
+            data.forEach(entry => {
                 if (!Array.isArray(entry)) return;
                 
                 const item = document.createElement('div');
                 item.className = 'history-item';
                 
-                // entry[0] = Fecha (A)
-                // entry[2] = Estacion/Obra (C)
-                // entry[3] = Litros (D)
-                // For descargas, entry[3] = Maquina
                 if (tipo === 'CARGA') {
                     item.innerHTML = `
                         <span>${entry[0] || ''}</span>
