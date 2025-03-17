@@ -553,7 +553,9 @@ async function showHistorial() {
             },
             body: JSON.stringify({
                 username: currentUser,
-                sheetName: sheetName
+                sheetName: sheetName,
+                limit: 5,  // Limit to last 5 entries
+                ignoreEmptyCheck: true  // New flag to ignore empty column checks
             })
         });
 
@@ -593,28 +595,32 @@ async function showHistorial() {
         historialList.appendChild(headerItem);
         
         // Add entries
-        data.history.forEach(entry => {
-            const item = document.createElement('div');
-            item.className = 'history-item';
-            
-            if (sheetName === 'Cargas') {
-                item.innerHTML = `
-                    <span>${entry[0]}</span>
-                    <span>${entry[2]}</span>
-                    <span>${entry[3]} L</span>
-                    <span>${entry[4]}</span>
-                `;
-            } else {
-                item.innerHTML = `
-                    <span>${entry[0]}</span>
-                    <span>${entry[2]}</span>
-                    <span>${entry[3]}</span>
-                    <span>${entry[5]} L</span>
-                `;
-            }
-            
-            historialList.appendChild(item);
-        });
+        if (data.history && Array.isArray(data.history)) {
+            data.history.forEach(entry => {
+                if (entry && entry.length >= 4) {  // Ensure we have at least the required columns
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    
+                    if (sheetName === 'Cargas') {
+                        item.innerHTML = `
+                            <span>${entry[0] || ''}</span>
+                            <span>${entry[2] || ''}</span>
+                            <span>${entry[3] ? entry[3] + ' L' : ''}</span>
+                            <span>${entry[4] || ''}</span>
+                        `;
+                    } else {
+                        item.innerHTML = `
+                            <span>${entry[0] || ''}</span>
+                            <span>${entry[2] || ''}</span>
+                            <span>${entry[3] || ''}</span>
+                            <span>${entry[5] ? entry[5] + ' L' : ''}</span>
+                        `;
+                    }
+                    
+                    historialList.appendChild(item);
+                }
+            });
+        }
         
         // Show modal
         document.getElementById('historial-modal').style.display = 'block';
