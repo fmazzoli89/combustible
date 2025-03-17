@@ -580,8 +580,8 @@ async function showHistorial() {
                 <span>Fecha</span>
                 <span>Estación</span>
                 <span>Litros</span>
-                <span>Usuario</span>
             `;
+            headerItem.style.gridTemplateColumns = '70px minmax(130px, 1fr) 60px';
         } else {
             headerItem.innerHTML = `
                 <span>Fecha</span>
@@ -604,10 +604,9 @@ async function showHistorial() {
                             <span>${entry[0] || ''}</span>
                             <span>${entry[2] || ''}</span>
                             <span>${entry[3] ? entry[3] + ' L' : ''}</span>
-                            <span>${entry[4] || ''}</span>
                         `;
+                        item.style.gridTemplateColumns = '70px minmax(130px, 1fr) 60px';
                     } else {
-                        // For Descargas, we're already getting the columns in the correct order from the backend
                         item.innerHTML = `
                             <span>${entry[0] || ''}</span>
                             <span>${entry[1] || ''}</span>
