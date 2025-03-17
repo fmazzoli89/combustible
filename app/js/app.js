@@ -570,38 +570,73 @@ function formatDisplayDate(dateStr) {
 
 // Show history modal
 async function showHistorial() {
+    console.log('Starting showHistorial function');
     showLoading();
     try {
-        const currentTab = document.querySelector('.tab-btn.active').textContent;
-        const tipo = currentTab === 'CARGA' ? 'CARGA' : 'DESCARGA';
+        console.log('Getting current tab information');
+        const currentTab = document.querySelector('.tab-btn.active');
+        console.log('Current tab element:', currentTab);
         
-        const response = await fetch(BASE_API_ENDPOINT + '/sheets', {
+        if (!currentTab) {
+            throw new Error('No active tab found');
+        }
+        
+        const tabText = currentTab.textContent;
+        console.log('Current tab text:', tabText);
+        
+        const tipo = tabText === 'CARGA' ? 'CARGA' : 'DESCARGA';
+        console.log('Selected tipo:', tipo);
+        
+        const requestBody = {
+            action: 'getLastFive',
+            sheetName: tipo + 'S' // CARGAS or DESCARGAS
+        };
+        console.log('Request body:', JSON.stringify(requestBody));
+        
+        console.log('Making fetch request to:', BASE_API_ENDPOINT);
+        const response = await fetch(BASE_API_ENDPOINT, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                action: 'getLastFive',
-                sheetName: tipo + 'S' // CARGAS or DESCARGAS
-            })
+            body: JSON.stringify(requestBody)
         });
+        
+        console.log('Response status:', response.status);
+        console.log('Response status text:', response.statusText);
 
         if (!response.ok) {
-            throw new Error('Error al obtener el historial');
+            const errorText = await response.text();
+            console.error('Error response body:', errorText);
+            throw new Error(`Error al obtener el historial: ${response.status} ${response.statusText}`);
         }
 
+        console.log('Parsing response JSON');
         const data = await response.json();
+        console.log('Received data:', data);
         
+        console.log('Getting DOM elements');
         const historialList = document.getElementById('historial-list');
         const historialTitle = document.getElementById('historial-title');
         
+        if (!historialList || !historialTitle) {
+            console.error('Missing DOM elements:', {
+                historialList: !!historialList,
+                historialTitle: !!historialTitle
+            });
+            throw new Error('Error: elementos del DOM no encontrados');
+        }
+        
         // Update title
+        console.log('Updating title');
         historialTitle.textContent = `Últimas ${tipo === 'CARGA' ? 'Cargas' : 'Descargas'}`;
         
         // Clear previous entries
+        console.log('Clearing previous entries');
         historialList.innerHTML = '';
         
         // Add header row
+        console.log('Adding header row');
         const headerItem = document.createElement('div');
         headerItem.className = 'history-item header';
         
@@ -622,25 +657,48 @@ async function showHistorial() {
         historialList.appendChild(headerItem);
 
         // Display entries or show empty message
+        console.log('Checking data array:', { 
+            isArray: Array.isArray(data), 
+            length: data ? data.length : 0 
+        });
+        
         if (!Array.isArray(data) || data.length === 0) {
+            console.log('No data to display, showing empty message');
             const emptyMessage = document.createElement('div');
             emptyMessage.className = 'history-item';
             emptyMessage.innerHTML = '<span style="text-align: center; width: 100%">No hay registros para mostrar</span>';
             historialList.appendChild(emptyMessage);
         } else {
-            data.forEach(entry => {
-                if (!Array.isArray(entry)) return;
+            console.log('Processing data entries');
+            data.forEach((entry, index) => {
+                console.log(`Processing entry ${index}:`, entry);
+                
+                if (!Array.isArray(entry)) {
+                    console.log(`Entry ${index} is not an array, skipping`);
+                    return;
+                }
                 
                 const item = document.createElement('div');
                 item.className = 'history-item';
                 
                 if (tipo === 'CARGA') {
+                    console.log(`Creating CARGA item with values:`, {
+                        fecha: entry[0],
+                        estacion: entry[2],
+                        litros: entry[3]
+                    });
                     item.innerHTML = `
                         <span>${entry[0] || ''}</span>
                         <span>${entry[2] || ''}</span>
                         <span>${entry[3] ? `${entry[3]} L` : ''}</span>
                     `;
                 } else {
+                    console.log(`Creating DESCARGA item with values:`, {
+                        fecha: entry[0],
+                        obra: entry[2],
+                        maquina: entry[3],
+                        litros: entry[5]
+                    });
                     item.innerHTML = `
                         <span>${entry[0] || ''}</span>
                         <span>${entry[2] || ''}</span>
@@ -653,12 +711,14 @@ async function showHistorial() {
             });
         }
         
-        // Show modal
+        console.log('Showing modal');
         document.getElementById('historial-modal').style.display = 'block';
     } catch (error) {
-        console.error('Error fetching history:', error);
+        console.error('Error in showHistorial:', error);
+        console.error('Error stack:', error.stack);
         alert('Error al cargar el historial. Por favor intente nuevamente más tarde.');
     } finally {
+        console.log('Finishing showHistorial function');
         hideLoading();
     }
 }
