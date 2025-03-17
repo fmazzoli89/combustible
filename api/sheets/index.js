@@ -172,26 +172,12 @@ async function getCargasHistory(username) {
 // Function to get descargas history
 async function getDescargasHistory(username) {
     try {
-        // First, get the header row to find the column indices
-        const headerResponse = await sheets.spreadsheets.values.get({
-            spreadsheetId: process.env.SHEET_ID,
-            range: 'Descargas!A1:Z1',  // Get all possible columns in header row
-            majorDimension: 'ROWS'
-        });
-
-        const headers = headerResponse.data.values?.[0] || [];
-        
-        // Find indices of required columns
-        const fechaIndex = 0; // Fecha is always first column
-        const obraIndex = headers.findIndex(h => h === 'Obra');
-        const maquinaIndex = headers.findIndex(h => h === 'Máquina');
-        const litrosIndex = headers.findIndex(h => h === 'Litros');
-        const usuarioIndex = headers.findIndex(h => h === 'Usuario');
-
-        // Ensure we found all required columns
-        if (obraIndex === -1 || maquinaIndex === -1 || litrosIndex === -1 || usuarioIndex === -1) {
-            throw new Error('Required columns not found in sheet');
-        }
+        // Use fixed column indices
+        const FECHA_INDEX = 0;    // Column A
+        const OBRA_INDEX = 2;     // Column C
+        const MAQUINA_INDEX = 3;  // Column D
+        const LITROS_INDEX = 5;   // Column F
+        const USUARIO_INDEX = 10;  // Column K
 
         // Get all rows
         const response = await sheets.spreadsheets.values.get({
@@ -205,22 +191,22 @@ async function getDescargasHistory(username) {
         // Filter by username and parse dates for sorting
         const userEntries = values
             .slice(1) // Skip header row
-            .filter(row => row.length > usuarioIndex && row[usuarioIndex] === username)
+            .filter(row => row.length > USUARIO_INDEX && row[USUARIO_INDEX] === username)
             .map(row => {
                 // Parse date from format "DD/MM/YYYY HH:mm"
-                const [datePart, timePart] = row[fechaIndex].split(' ');
+                const [datePart, timePart] = row[FECHA_INDEX].split(' ');
                 const [day, month, year] = datePart.split('/');
                 const [hours, minutes] = timePart.split(':');
                 const date = new Date(year, month - 1, day, hours, minutes);
                 
-                // Return only the columns we care about
+                // Return only the columns we care about in the correct order
                 return {
                     date,
                     row: [
-                        row[fechaIndex],  // Fecha
-                        row[obraIndex],   // Obra
-                        row[maquinaIndex], // Maquina
-                        row[litrosIndex]  // Litros
+                        row[FECHA_INDEX],   // Fecha (A)
+                        row[OBRA_INDEX],    // Obra (C)
+                        row[MAQUINA_INDEX], // Maquina (D)
+                        row[LITROS_INDEX]   // Litros (F)
                     ]
                 };
             })
