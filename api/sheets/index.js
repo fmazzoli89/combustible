@@ -133,12 +133,12 @@ async function ensureSheetExists(spreadsheetId, sheetName) {
     }
 }
 
-// Function to get user history
-async function getUserHistory(username, sheetName) {
+// Function to get cargas history
+async function getCargasHistory(username) {
     try {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: process.env.SHEET_ID,
-            range: `${sheetName}!A:K`,
+            range: 'Cargas!A:E',  // Only get the columns we need
             majorDimension: 'ROWS'
         });
 
@@ -146,7 +146,7 @@ async function getUserHistory(username, sheetName) {
         
         // Filter by username and parse dates for sorting
         const userEntries = values
-            .filter(row => row.length >= 5 && row[4] === username) // Username is in column E (index 4)
+            .filter(row => row.length >= 5 && row[4] === username) // Username is in column E
             .map(row => {
                 // Parse date from format "DD/MM/YYYY HH:mm"
                 const [datePart, timePart] = row[0].split(' ');
@@ -164,8 +164,55 @@ async function getUserHistory(username, sheetName) {
 
         return userEntries;
     } catch (error) {
-        console.error('Error fetching user history:', error);
+        console.error('Error fetching cargas history:', error);
         throw error;
+    }
+}
+
+// Function to get descargas history
+async function getDescargasHistory(username) {
+    try {
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.SHEET_ID,
+            range: 'Descargas!A:K',  // Get all relevant columns for descargas
+            majorDimension: 'ROWS'
+        });
+
+        const values = response.data.values || [];
+        
+        // Filter by username (column J) and parse dates for sorting
+        const userEntries = values
+            .filter(row => row.length >= 10 && row[9] === username) // Username is in column J (index 9)
+            .map(row => {
+                // Parse date from format "DD/MM/YYYY HH:mm"
+                const [datePart, timePart] = row[0].split(' ');
+                const [day, month, year] = datePart.split('/');
+                const [hours, minutes] = timePart.split(':');
+                const date = new Date(year, month - 1, day, hours, minutes);
+                return {
+                    date,
+                    row
+                };
+            })
+            .sort((a, b) => b.date - a.date) // Sort by date, newest first
+            .slice(0, 5) // Get only last 5 entries
+            .map(entry => entry.row); // Convert back to row format
+
+        return userEntries;
+    } catch (error) {
+        console.error('Error fetching descargas history:', error);
+        throw error;
+    }
+}
+
+// Function to get user history (main function that delegates to specific handlers)
+async function getUserHistory(username, sheetName) {
+    if (sheetName === 'Cargas') {
+        return getCargasHistory(username);
+    } else if (sheetName === 'Descargas') {
+        return getDescargasHistory(username);
+    } else {
+        throw new Error(`Invalid sheet name: ${sheetName}`);
     }
 }
 
