@@ -146,9 +146,9 @@ async function getUserHistory(username, sheetName) {
         
         // Filter by username and parse dates for sorting
         const userEntries = values
-            .filter(row => row[row.length - 1] === username) // Username is in the last column
+            .filter(row => row.length >= 5 && row[4] === username) // Username is in column E (index 4)
             .map(row => {
-                // Parse date from format "DD/MM/YYYY, HH:mm"
+                // Parse date from format "DD/MM/YYYY HH:mm"
                 const [datePart, timePart] = row[0].split(' ');
                 const [day, month, year] = datePart.split('/');
                 const [hours, minutes] = timePart.split(':');
