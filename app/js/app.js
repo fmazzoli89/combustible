@@ -553,9 +553,7 @@ async function showHistorial() {
             },
             body: JSON.stringify({
                 username: currentUser,
-                sheetName: sheetName,
-                limit: 5,  // Limit to last 5 entries
-                ignoreEmptyCheck: true  // New flag to ignore empty column checks
+                sheetName: sheetName
             })
         });
 
@@ -609,11 +607,12 @@ async function showHistorial() {
                             <span>${entry[4] || ''}</span>
                         `;
                     } else {
+                        // For Descargas, we're already getting the columns in the correct order from the backend
                         item.innerHTML = `
                             <span>${entry[0] || ''}</span>
+                            <span>${entry[1] || ''}</span>
                             <span>${entry[2] || ''}</span>
-                            <span>${entry[3] || ''}</span>
-                            <span>${entry[5] ? entry[5] + ' L' : ''}</span>
+                            <span>${entry[3] ? entry[3] + ' L' : ''}</span>
                         `;
                     }
                     
