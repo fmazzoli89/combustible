@@ -149,7 +149,7 @@ async function getUserHistory(username, sheetName) {
             .filter(row => row[row.length - 1] === username) // Username is in the last column
             .map(row => {
                 // Parse date from format "DD/MM/YYYY, HH:mm"
-                const [datePart, timePart] = row[0].split(', ');
+                const [datePart, timePart] = row[0].split(' ');
                 const [day, month, year] = datePart.split('/');
                 const [hours, minutes] = timePart.split(':');
                 const date = new Date(year, month - 1, day, hours, minutes);
