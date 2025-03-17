@@ -589,13 +589,13 @@ async function showHistorial() {
         
         const requestBody = {
             action: 'getHistory',
-            tipo: tipo,
-            limit: 5
+            values: [tipo],
+            username: currentUser
         };
         console.log('Request body:', JSON.stringify(requestBody));
         
-        console.log('Making fetch request to:', BASE_API_ENDPOINT);
-        const response = await fetch(BASE_API_ENDPOINT, {
+        console.log('Making fetch request to:', BASE_API_ENDPOINT + '/sheets');
+        const response = await fetch(BASE_API_ENDPOINT + '/sheets', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
