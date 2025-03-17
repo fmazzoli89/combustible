@@ -258,6 +258,9 @@ function logout() {
     if (passwordInput) {
         passwordInput.value = '';
     }
+
+    // Reload users list
+    loadUsersList();
 }
 
 function toggleExtraFields(event) {
