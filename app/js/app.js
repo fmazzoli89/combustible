@@ -575,7 +575,7 @@ async function showHistorial() {
         const currentTab = document.querySelector('.tab-btn.active').textContent;
         const tipo = currentTab === 'CARGA' ? 'CARGA' : 'DESCARGA';
         
-        const response = await fetch(BASE_API_ENDPOINT, {
+        const response = await fetch(BASE_API_ENDPOINT + '/sheets', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -583,7 +583,8 @@ async function showHistorial() {
             body: JSON.stringify({
                 action: 'getHistory',
                 username: currentUser,
-                tipo: tipo
+                tipo: tipo,
+                sheetName: tipo + 'S' // Server expects CARGAS or DESCARGAS
             })
         });
 
