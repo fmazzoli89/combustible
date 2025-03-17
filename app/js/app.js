@@ -588,8 +588,9 @@ async function showHistorial() {
         console.log('Selected tipo:', tipo);
         
         const requestBody = {
-            action: 'getLastFive',
-            sheetName: tipo + 'S' // CARGAS or DESCARGAS
+            action: 'getHistory',
+            tipo: tipo,
+            limit: 5
         };
         console.log('Request body:', JSON.stringify(requestBody));
         
