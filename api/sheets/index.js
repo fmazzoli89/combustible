@@ -76,7 +76,7 @@ async function getUsersList() {
         // Extract users and permissions
         const users = response.data.values || [];
         return users
-            .filter(row => row[2] === '✓')  // Only include users with Acceso Combustible checked
+            .filter(row => row[2] && row[2].toLowerCase() === 'true')  // Only include users with Acceso Combustible set to true
             .map(row => ({
                 username: row[0] || '',
                 password: row[1] || ''
