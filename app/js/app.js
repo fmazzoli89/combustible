@@ -149,12 +149,12 @@ async function authenticateUser(username, password) {
             body: JSON.stringify({ username, password })
         });
 
+        const data = await response.json();
+        
         if (!response.ok) {
-            const data = await response.json();
             throw new Error(data.error || 'Credenciales inválidas');
         }
 
-        const data = await response.json();
         return data.success;
     } catch (error) {
         console.error('Authentication error:', error);
