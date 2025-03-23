@@ -149,15 +149,16 @@ async function authenticateUser(username, password) {
             body: JSON.stringify({ username, password })
         });
 
-        if (response.ok) {
-            return true;
-        } else {
+        if (!response.ok) {
             const data = await response.json();
-            throw new Error(data.error || 'Authentication failed');
+            throw new Error(data.error || 'Credenciales inválidas');
         }
+
+        const data = await response.json();
+        return data.success;
     } catch (error) {
         console.error('Authentication error:', error);
-        throw error;
+        throw new Error('Credenciales inválidas');
     }
 }
 
@@ -300,6 +301,8 @@ async function startApp() {
             throw new Error('Por favor ingrese la contraseña');
         }
 
+        showLoading();
+        
         // Authenticate user
         const isAuthenticated = await authenticateUser(username, password);
         if (!isAuthenticated) {
@@ -331,6 +334,8 @@ async function startApp() {
             passwordInput.value = '';
         }
         alert(error.message || 'Error de autenticación');
+    } finally {
+        hideLoading();
     }
 }
 
