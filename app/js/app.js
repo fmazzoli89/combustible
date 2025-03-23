@@ -299,6 +299,12 @@ async function startApp() {
         if (!password) {
             throw new Error('Por favor ingrese la contraseña');
         }
+
+        // Authenticate user
+        const isAuthenticated = await authenticateUser(username, password);
+        if (!isAuthenticated) {
+            throw new Error('Credenciales inválidas');
+        }
         
         // Store login data with 90-day expiration
         const expiresAt = new Date().getTime() + (90 * 24 * 60 * 60 * 1000); // 90 days in milliseconds

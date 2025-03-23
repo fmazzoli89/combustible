@@ -69,16 +69,18 @@ async function getUsersList() {
     try {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: process.env.SHEET_ID,
-            range: 'Usuarios!A2:B',
+            range: 'Usuarios!A2:C',  // Include column C for Acceso Combustible
             majorDimension: 'ROWS'
         });
 
-        // Extract users and passwords
+        // Extract users and permissions
         const users = response.data.values || [];
-        return users.map(row => ({
-            username: row[0] || '',
-            password: row[1] || ''
-        }));
+        return users
+            .filter(row => row[2] === '✓')  // Only include users with Acceso Combustible checked
+            .map(row => ({
+                username: row[0] || '',
+                password: row[1] || ''
+            }));
     } catch (error) {
         console.error('Error fetching users:', error);
         throw error;
