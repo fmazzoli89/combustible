@@ -435,23 +435,97 @@ async function handleCarga(event) {
     }
 }
 
-// Get GPS location
-async function getLocation() {
-    return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-            reject(new Error('Geolocalización no está soportada en este dispositivo'));
-            return;
-        }
+// Check if device is iOS
+function isIOS() {
+    return [
+        'iPad Simulator',
+        'iPhone Simulator',
+        'iPod Simulator',
+        'iPad',
+        'iPhone',
+        'iPod'
+    ].includes(navigator.platform)
+    || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+}
 
+// Show GPS permission instructions modal
+function showGPSInstructions() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+
+    const content = document.createElement('div');
+    content.className = 'modal-content';
+
+    const header = document.createElement('div');
+    header.className = 'modal-header';
+    
+    const title = document.createElement('h3');
+    title.textContent = 'Acceso a Ubicación Requerido';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'modal-close';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.onclick = () => modal.remove();
+
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+
+    const body = document.createElement('div');
+    body.style.padding = '20px';
+    body.style.fontSize = '14px';
+    body.style.lineHeight = '1.5';
+
+    if (isIOS()) {
+        // Instructions for iOS
+        body.innerHTML = `
+            <p>Para habilitar el acceso a la ubicación en iOS:</p>
+            <ol style="margin-left: 20px; margin-top: 10px;">
+                <li>Abra la aplicación "Ajustes"</li>
+                <li>Desplácese hacia abajo y seleccione su navegador (Safari, Chrome, etc.)</li>
+                <li>Toque en "Localización"</li>
+                <li>Seleccione "Preguntar" o "Permitir"</li>
+                <li>Vuelva a la aplicación y reintente</li>
+            </ol>
+        `;
+    } else {
+        // Instructions for Android with retry button
+        body.innerHTML = `
+            <p>Para usar su ubicación:</p>
+            <ol style="margin-left: 20px; margin-top: 10px;">
+                <li>Haga clic en el botón "Reintentar" abajo</li>
+                <li>Cuando aparezca el mensaje de permiso, seleccione "Permitir"</li>
+            </ol>
+            <button id="retryGPS" style="margin-top: 15px; width: auto; padding: 8px 16px;">Reintentar</button>
+        `;
+    }
+
+    content.appendChild(header);
+    content.appendChild(body);
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+
+    // Add click handler for retry button on Android
+    if (!isIOS()) {
+        document.getElementById('retryGPS').onclick = async () => {
+            modal.remove();
+            try {
+                const result = await getCurrentPositionPromise();
+                return `${result.coords.latitude},${result.coords.longitude}`;
+            } catch (error) {
+                console.warn('GPS retry failed:', error);
+                showGPSInstructions();
+            }
+        };
+    }
+}
+
+// Promisified getCurrentPosition
+function getCurrentPositionPromise() {
+    return new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const location = `${position.coords.latitude},${position.coords.longitude}`;
-                resolve(location);
-            },
-            (error) => {
-                console.error('Error getting location:', error);
-                reject(new Error('No se pudo obtener la ubicación. Por favor habilite el GPS.'));
-            },
+            resolve,
+            reject,
             {
                 enableHighAccuracy: true,
                 timeout: 10000,
@@ -461,14 +535,45 @@ async function getLocation() {
     });
 }
 
+// Get GPS location
+async function getLocation() {
+    if (!navigator.geolocation) {
+        throw new Error('Geolocalización no está soportada en este dispositivo');
+    }
+
+    try {
+        const position = await getCurrentPositionPromise();
+        return `${position.coords.latitude},${position.coords.longitude}`;
+    } catch (error) {
+        console.warn('GPS error:', error);
+        
+        // Show different instructions based on error type
+        if (error.code === 1) { // PERMISSION_DENIED
+            showGPSInstructions();
+        } else if (error.code === 2) { // POSITION_UNAVAILABLE
+            throw new Error('No se pudo obtener la ubicación. Verifique que el GPS esté activado.');
+        } else if (error.code === 3) { // TIMEOUT
+            throw new Error('Tiempo de espera agotado. Por favor reintente.');
+        }
+        
+        throw error;
+    }
+}
+
 // Handle descarga form submission
 async function handleDescarga(event) {
     event.preventDefault();
     showLoading();
     
     try {
-        // Get GPS location first
-        const location = await getLocation();
+        // Try to get GPS location, use 'N/A' if it fails
+        let location = 'N/A';
+        try {
+            location = await getLocation();
+        } catch (error) {
+            console.warn('GPS error:', error);
+            // Continue with 'N/A' as location
+        }
         
         const now = new Date();
         // Format date as YYYY-MM-DD HH:mm
@@ -511,7 +616,7 @@ async function handleDescarga(event) {
         ];
         
         await appendToSheet(values);
-        const selectedObra = data.obra; // Store the selected obra before reset
+        const selectedObra = data.obra;
         
         document.getElementById('descarga-form').reset();
         document.getElementById('descarga-obra').value = selectedObra; // Restore the obra value
