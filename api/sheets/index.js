@@ -33,7 +33,7 @@ async function getOperariosList() {
     try {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: process.env.SHEET_ID,
-            range: 'Operarios!A2:A',
+            range: 'Usuarios!A2:A',
             majorDimension: 'COLUMNS'
         });
 
