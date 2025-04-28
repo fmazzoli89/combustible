@@ -33,7 +33,7 @@ async function getOperariosList() {
     try {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: process.env.SHEET_ID,
-            range: 'Usuarios!A2:A',
+            range: 'Usuarios!A3:A',
             majorDimension: 'COLUMNS'
         });
 
@@ -69,7 +69,7 @@ async function getUsersList() {
     try {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: process.env.SHEET_ID,
-            range: 'Usuarios!A2:C',  // Include column C for Acceso Combustible
+            range: 'Usuarios!A3:C',  // Include column C for Acceso Combustible
             majorDimension: 'ROWS'
         });
 
