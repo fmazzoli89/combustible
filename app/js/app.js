@@ -627,9 +627,7 @@ async function handleDescarga(event) {
         document.getElementById('descarga-aceite-hidraulico').value = '';
         document.getElementById('descarga-fluidina').value = '';
         // Reset desde to default value
-        document.getElementById('descarga-desde').value = 'CAMION';
-        // Hide extra fields
-        document.getElementById('extra-fields').style.display = 'none';
+        document.getElementById('descarga-desde').value = '';
         
         showSuccess('Descarga Exitosa');
     } catch (error) {
