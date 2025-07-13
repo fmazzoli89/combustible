@@ -13,14 +13,19 @@ const sheets = google.sheets({ version: 'v4', auth });
 // Function to get obras list from sheet
 async function getObrasList() {
     try {
+        // Fetch columns A (Obras) and E (Activa)
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: process.env.SHEET_ID,
-            range: 'Obras!A2:A',
-            majorDimension: 'COLUMNS'
+            range: 'Obras!A2:E',
+            majorDimension: 'ROWS'
         });
 
-        // Extract the first (and only) column
-        const obras = response.data.values ? response.data.values[0] : [];
+        // Each row: [Obra, ..., ..., ..., Activa]
+        const rows = response.data.values || [];
+        // Only return the Obra name (column A) if Activa (column E) is true/checked
+        const obras = rows
+            .filter(row => row[4] && (row[4].toLowerCase() === 'true' || row[4] === '✓' || row[4] === '✔' || row[4] === '1' ))
+            .map(row => row[0]);
         return obras;
     } catch (error) {
         console.error('Error fetching obras:', error);
